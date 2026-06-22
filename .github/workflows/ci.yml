@@ -21,8 +21,5 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm check
-        env:
-          VITE_APP_BASE_URL: /ActionDev/
-          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
-          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
-
+      - name: Verify generated pages are committed
+        run: git diff --exit-code -- docs/ActionDev-Master-Learning-Guide.html docs/index.html

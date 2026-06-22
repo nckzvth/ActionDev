@@ -1,60 +1,26 @@
-# ActionDev
+# ActionDev Master Learning Guide
 
-ActionDev is a self-guided learning application for building a focused custom C++ eight-player online co-op ARPG runtime. Required instruction stays inside the application; learners implement the real game in their own repositories.
+This repository publishes the standalone ActionDev learning guide. The previous React/Supabase course application remains in the repository as legacy source, but it is no longer built or deployed.
 
-## Local development
+Read the guide at [nckzvth.github.io/ActionDev](https://nckzvth.github.io/ActionDev/).
 
-Prerequisites: Node.js 24+, pnpm 10, and Docker only when running Supabase locally.
+## Source and generated pages
+
+- `docs/ActionDev-Master-Learning-Guide.md` is the editable source.
+- `docs/ActionDev-Master-Learning-Guide.html` is the named standalone copy.
+- `docs/index.html` is the copy served at the GitHub Pages root.
+
+Regenerate both HTML files after editing the Markdown:
 
 ```bash
 pnpm install
-cp .env.example .env.local
+pnpm guide:build
+```
+
+Preview the site locally:
+
+```bash
 pnpm dev
 ```
 
-The configured application opens at `http://localhost:5173/ActionDev/`. Hash routing keeps all routes compatible with GitHub Pages.
-
-## Verification
-
-```bash
-pnpm check
-```
-
-This regenerates the 89-lesson manifest and Supabase seed, type-checks, lints, tests, and produces the GitHub Pages build.
-
-## Content source
-
-`ActionDev-Implementation-Plan.md` is the approved curriculum contract. `scripts/build-course.mjs` validates that all 89 lesson IDs remain present and generates `src/generated/course-data.ts`. `scripts/build-supabase-seed.mjs` creates stable public course rows and private assessment keys.
-
-## Supabase
-
-The frontend needs only browser-safe values:
-
-```env
-VITE_SUPABASE_URL=https://PROJECT_REF.supabase.co
-VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
-VITE_APP_BASE_URL=/ActionDev/
-```
-
-Never put a secret/service-role key, database password, JWT secret, or management access token in a `VITE_*` value.
-
-To apply the schema after authenticating the CLI locally:
-
-```bash
-pnpm supabase login
-pnpm supabase link --project-ref oypsgknulyezteyzedrg
-pnpm supabase db push
-pnpm supabase functions deploy delete-account
-```
-
-Supabase Auth URL configuration:
-
-- Site URL: `https://nckzvth.github.io/ActionDev/`
-- Redirect URLs: `https://nckzvth.github.io/ActionDev/`, `http://localhost:5173/ActionDev/`
-
-## GitHub Pages
-
-Set repository variables `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`. The deployment workflow validates the application, uploads `dist`, and deploys from `main` to `https://nckzvth.github.io/ActionDev/`.
-
-The source PDFs are intentionally ignored and are not part of the web repository.
-
+GitHub Pages deploys the committed `docs/` directory whenever `main` changes. The guide does not require Supabase, authentication, or environment variables.
