@@ -2803,7 +2803,7 @@ Build: a 10-15 minute flow with one class, main/sub weapons, three enemies, boss
 
 Learn: vertical integration, user flow, pacing, failure triage, evidence collection.
 
-Prove: all gameplay runs through localhost dedicated server; Gate 02 dossier complete; no client-only alternate rules.
+Prove: all gameplay runs through the localhost dedicated server; the Increment 8 evidence dossier is complete; no client-only alternate rules remain.
 
 Help at this step: return to the Chapter 10 ownership matrix and Chapter 11 command-to-hit trace. First hint: remove every client-only gameplay shortcut, then run the complete 10-15 minute flow from a clean character and save the trace as gate evidence.
 
@@ -2843,7 +2843,7 @@ Build: replayable current content, final migrations, compatibility matrix, store
 
 Learn: release judgment, evidence-based scope, honest communication, sustainable operations.
 
-Prove: Gate 05 passes without waiving corruption, accessibility, packaging, support, or store-truth blockers.
+Prove: the final release dossier passes without waiving corruption, accessibility, packaging, support, or store-truth blockers.
 
 Help at this step: [Steam Early Access rules](https://partner.steamgames.com/doc/store/earlyaccess), [store presence documentation](https://partner.steamgames.com/doc/store), and [Steam stats/achievements](https://partner.steamgames.com/doc/features/achievements). First hint: map each store claim to a current-build test/capture and remove any claim that depends on future work.
 
@@ -2864,435 +2864,10 @@ For every new system or feature, answer these before implementation:
 11. What happens on invalid input, target loss, disconnect, retry, or partial failure?
 12. What is the smallest headless test and smallest playable demonstration?
 13. Which performance/bandwidth/readability budget can it consume?
-14. What evidence closes the lesson/gate?
+14. What evidence closes the chapter checkpoint or release increment?
 
 If these answers are unclear, the feature is not ready to code. Return to the relevant learning chapter and create the missing contract first.
 
-# Complete 89-lesson syllabus and development plan
-
-## Lesson contract
-
-Every lesson below is a required learning and implementation unit.
-
-- **Prereq:** lessons or gate that must already be complete.
-- **Teach:** the required concepts and failure modes.
-- **Visual:** the model, diagram, timeline, or state view the learner must be able to explain.
-- **Check:** knowledge practice and the passing threshold.
-- **Build/Test/Artifact:** permanent work in the game repository and the evidence expected.
-- **Done:** the completion rule. Reading alone never completes a build lesson.
-- **Effort:** focused study plus core project time; independent practice and production content are additional.
-- **Milestone:** the gate supported by the lesson.
-- **Optional:** free enrichment references. They do not replace the required understanding in **Teach**.
-
-For each lesson, also write one correct example, one incorrect/debug example, a short vocabulary list, and a project-specific reflection in your notes.
-
-## Stage 0 - Orientation and foundations
-
-> **Stage-to-project connection:** this stage ends at `checkpoint/01-core`, not at a quiz. The repository must build client/server/shared/tools/tests from presets; strong IDs, RAII owners, typed results, tests, CI, sanitizer, Git/LFS policy, and runtime scope must exist. These are the contracts every later SDL, bgfx, Jolt, socket, entity, item, and save implementation consumes. If the gate fails, return to Chapters 0-1 and use the CMake, vcpkg, cppreference, Core Guidelines, GoogleTest, and sanitizer links provided there before starting platform code.
-
-### Module AD-OR - Mission and architecture boundary
-
-**AD-OR-01 - The ActionDev learning contract**<br>
-Prereq: none. Teach: distinguish study in this guide from implementation in the project repository; understand stages, gates, evidence, estimates, optional resources, progress privacy, and self-verification limits. Visual: full course path with six gates and “inside this guide/outside in the project” swimlanes. Check: match activities to the correct environment; scenario on whether a link can replace a lesson; 100% on non-negotiables. Build/Test/Artifact: create or identify the learner repository and record an optional URL plus a written scope statement; no code. Done: onboarding, contract check, and scope reflection complete. Effort: 1-2 h + 0.5 h project. Milestone: `AD-GATE-00`. Optional: `R-GPP`.
-
-**AD-OR-02 - Build the ARPG, not a general engine**<br>
-Prereq: `AD-OR-01`. Teach: custom runtime versus engine, own/borrow boundary, selected middleware, PC/Steam/dedicated-session assumptions, non-goals, and how to reject general-purpose editor/shader/physics/transport work. Visual: own-versus-borrow matrix and runtime dependency map. Check: architecture tradeoff scenarios and “scope or game requirement?” sorting; 85%. Build/Test/Artifact: write `docs/runtime-scope.md` with owned/borrowed systems and decision log. Test: every owned system maps to an ARPG requirement; every borrowed layer has a selected library. Done: assessment and artifact attestation. Effort: 2-3 h + 1 h. Milestone: `AD-GATE-00`. Optional: `R-GPP`, `R-DOD`.
-
-### Module AD-FD - Modern C++, repository, and engineering discipline
-
-**AD-FD-01 - Command line, compiler, linker, and debugger mental model**<br>
-Prereq: `AD-OR-02`. Teach: files/directories, shell commands, translation units, headers, preprocessing, object files, linking, executable, symbols, debug/release; correct and broken compile/link examples. Visual: source-to-executable pipeline. Check: order build stages, classify compiler/linker/runtime errors, inspect short diagnostic excerpts; 80%. Build/Test/Artifact: create `scratch/foundations` and compile/run/debug a two-file program using documented commands. Test: clean rebuild and intentional undefined-symbol diagnosis. Done: checks plus command/output evidence. Effort: 4-6 h + 2 h. Milestone: `AD-GATE-00`. Optional: `R-CPPREF`, `R-CMAKE`.
-
-**AD-FD-02 - Types, control flow, functions, structs, and namespaces**<br>
-Prereq: `AD-FD-01`. Teach: fundamental types, initialization, conversions, conditions/loops, functions, references, `const`, enums, structs, namespaces, header/source separation using health/resources and ability examples. Visual: stack-frame and function-call flow. Check: code reading, completion, conversion bug finding; 80%. Build/Test/Artifact: implement typed `Health`, `Stamina`, and `DamageEvent` utilities without global mutable state. Tests: boundary values, invalid conversion cases. Done: assessment and test evidence. Effort: 8-12 h + 4 h. Milestone: `AD-GATE-00`. Optional: `R-CPPREF`.
-
-**AD-FD-03 - RAII, ownership, lifetime, and resource safety**<br>
-Prereq: `AD-FD-02`. Teach: scope, stack/heap, constructors/destructors, raw pointer roles, smart pointers, references, handles, ownership graphs, leaks/dangling/double-free; resource wrappers for SDL/bgfx-like handles. Visual: object lifetime and ownership diagrams. Check: identify owner, repair lifetime bugs, select `unique_ptr`/value/handle; all safety-critical items + 80%. Build/Test/Artifact: RAII wrapper for a mock runtime resource and handle registry. Tests: construction/destruction order, stale handle rejection, ASan clean. Done: assessment and sanitizer evidence. Effort: 8-12 h + 5 h. Milestone: `AD-GATE-00`. Optional: `R-CORE`, `R-ASAN`.
-
-**AD-FD-04 - Value semantics, move semantics, containers, spans, and ranges**<br>
-Prereq: `AD-FD-03`. Teach: copy/move, vector/string/map tradeoffs, iterators, algorithms, `span`, views/ranges, invalidation, allocation awareness; ability registry and snapshot examples. Visual: container storage/invalidation timeline. Check: predict copies/moves, choose structures, debug invalidated references; 80%. Build/Test/Artifact: allocation-conscious command buffer and stable-ID registry. Tests: move/copy counters, invalidation, empty/large inputs. Done: checks, code reflection, tests. Effort: 8-12 h + 5 h. Milestone: `AD-GATE-00`. Optional: `R-CPPREF`, `R-DOD`.
-
-**AD-FD-05 - APIs, errors, strong IDs, tags, and serialization-friendly data**<br>
-Prereq: `AD-FD-04`. Teach: invariants, `expected`-style results, exceptions policy, strong types, opaque IDs, enums/flags, tag sets, POD-like wire/data boundaries, parse/validate/activate separation. Visual: boundary-validation flow. Check: improve ambiguous APIs, classify validation location, design schema contracts; 85%. Build/Test/Artifact: strong entity/ability/item IDs, result type, starter gameplay tag set, JSON round-trip model. Tests: invalid IDs, missing fields, unknown versions. Done: API review checklist and tests. Effort: 8-12 h + 6 h. Milestone: `AD-GATE-00`. Optional: `R-CORE`, `R-JSON`.
-
-**AD-FD-06 - CMake targets, presets, packages, and repository layout**<br>
-Prereq: `AD-FD-05`. Teach: target-based CMake, visibility, presets, build types, generated files, CTest, install/package concepts, vcpkg versus Conan, why exactly one manager, `/client /server /shared /tools /tests /assets`. Visual: target dependency graph. Check: fix transitive include/link errors, choose public/private/interface, package-policy scenario; 85%. Build/Test/Artifact: monorepo skeleton, `CMakePresets.json`, vcpkg baseline, client/server/shared/test hello targets. Tests: clean configure/build/test with Debug and RelWithDebInfo. Done: clone-to-green evidence and setup doc. Effort: 10-14 h + 8 h. Milestone: `AD-GATE-00`. Optional: `R-CMAKE`, `R-VCPKG`.
-
-**AD-FD-07 - Git, GitHub, LFS, branches, and reviewable changes**<br>
-Prereq: `AD-FD-06`. Teach: commits, branches, merges/rebases at beginner level, ignore rules, LFS pointer model, binary asset policy, issues/PRs, release branches, bisect/revert, secrets hygiene. Visual: local/remote history and asset path. Check: order safe recovery, identify secret/binary mistakes, split a bad commit; 80%. Build/Test/Artifact: repository rules, `.gitignore`, `.gitattributes`, LFS patterns, PR template, decision record template. Test: fresh clone obtains assets and builds; no secrets tracked. Done: artifact checklist. Effort: 6-9 h + 3 h. Milestone: `AD-GATE-00`. Optional: `R-PROGIT`, `R-GHLFS`.
-
-**AD-FD-08 - Tests, CI, sanitizers, logging, profiling, and build discipline**<br>
-Prereq: `AD-FD-07`. Teach: unit/integration/smoke distinctions, CTest/GoogleTest, assertions, ASan/UBSan/TSan tradeoffs, structured logs, crash context, Tracy zones, reproducible CI, formatting/static analysis. Visual: feedback pipeline from commit to artifact. Check: choose test/tool by failure, diagnose sanitizer/log excerpts, CI ordering; 85%. Build/Test/Artifact: GitHub Actions build/test lane, formatting/static-analysis checks, sanitizer preset, structured logger, smoke test and profiler marker. Test: intentional failure is caught in each lane. Done: CI run evidence and tool matrix. Effort: 10-14 h + 8 h. Milestone: `AD-GATE-00`. Optional: `R-GTEST`, `R-ASAN`, `R-TSAN`, `R-TRACY`.
-
-`AD-GATE-00` exit: a fresh clone builds client/server/shared/tests from documented presets; dependencies are pinned; CI, formatter, static analysis, unit test, and at least one sanitizer lane work; Git/LFS rules and runtime scope exist. Estimated source-block total remains within Lesson A-B’s broad 200-300 hour learning range when exercises and independent practice are included.
-
-## Stage 1 - Platform, rendering, ECS, and content
-
-> **Stage-to-project connection:** this stage turns the skeleton into `checkpoint/03-world-content-render`: a headless fixed-tick server, SDL client/action map, bgfx graybox renderer, GLB pipeline, EnTT world, immutable content registries, and failure/debug views. It must visibly render data owned by simulation without giving presentation authority. The gate is a clean server/client build plus a graybox scene whose invalid content and missing assets fail predictably. Use the SDL, bgfx, RenderDoc, glTF/Blender, EnTT, JSON, and fixed-timestep links embedded in Chapters 2-3 while building each target.
-
-### Module AD-PL - SDL3 platform shell
-
-**AD-PL-01 - Application lifecycle and SDL3 platform boundary**<br>
-Prereq: `AD-GATE-00`. Teach: initialize/run/shutdown, subsystem ownership, errors, window lifecycle, focus/alt-tab, event pump, clean failure paths, client-only versus shared code. Visual: lifecycle state machine. Check: ordering and failure diagnosis; 85%. Build/Test/Artifact: SDL3 client bootstrap with guarded teardown and smoke-testable platform adapter. Tests: repeated start/stop, failed initialization, window close. Done: runnable artifact and tests. Effort: 4-6 h + 5 h. Milestone: `AD-GATE-01`. Optional: `R-SDL`.
-
-**AD-PL-02 - Input actions, devices, gamepads, and focus safety**<br>
-Prereq: `AD-PL-01`. Teach: events versus sampled state, action mapping, chords/deadzones, simultaneous keyboard/mouse/gamepad, device connect/disconnect, glyph abstraction, remapping, no stuck input after focus loss. Visual: physical input -> action -> command flow. Check: mapping and edge-case scenarios; 85%. Build/Test/Artifact: action-map layer and controller debug screen. Tests: unplug/replug, same-frame mouse/gamepad, focus loss, remap conflict. Done: assessment plus recorded test matrix. Effort: 6-9 h + 7 h. Milestone: `AD-GATE-01`. Optional: `R-SDL`, `R-STEAMINPUT`.
-
-**AD-PL-03 - Frame loop, clocks, configuration, logging, and debug loop**<br>
-Prereq: `AD-PL-02`. Teach: wall/render/simulation clocks, accumulator preview, frame pacing, configuration validation/hot reload, log categories, debug overlay, safe main-thread ownership. Visual: frame loop with future fixed-step boundary. Check: timing calculations, bad hot-reload design, log-level diagnosis; 85%. Build/Test/Artifact: frame timer, validated config, hot reload for presentation-only values, ImGui timing/input pane. Tests: variable render rate, malformed config, reload rollback. Done: stable shell evidence. Effort: 6-9 h + 7 h. Milestone: `AD-GATE-01`. Optional: `R-SDL`, `R-IMGUI`.
-
-**AD-PL-04 - Audio-device shell and free audio boundary**<br>
-Prereq: `AD-PL-03`. Teach: device lifecycle, buses/categories, event IDs versus filenames, spatial/non-spatial split, volume/accessibility settings, miniaudio baseline, why designer middleware is optional. Visual: gameplay event -> audio service -> device. Check: ownership and failure scenarios; 80%. Build/Test/Artifact: miniaudio-backed smoke service or interface plus silent fallback. Tests: missing device/file and shutdown. Done: assessment and API contract. Effort: 3-5 h + 3 h. Milestone: `AD-GATE-01`. Optional: `R-MINIAUDIO`.
-
-### Module AD-RN - bgfx rendering and asset ingress
-
-**AD-RN-01 - Renderer bootstrap, views, resources, and frame submission**<br>
-Prereq: `AD-PL-03`. Teach: renderer abstraction, backend selection, handles/lifetimes, views/passes, transforms, draw submission, resize/device reset, client-only boundary. Visual: CPU submission to backend frame. Check: order calls, repair lifetime/view bugs; 85%. Build/Test/Artifact: bgfx init/shutdown, clear, ground plane, simple mesh, orbit camera, frame HUD. Tests: resize/reload/no leaked handles. Done: capture plus test evidence. Effort: 8-12 h + 10 h. Milestone: `AD-GATE-01`. Optional: `R-BGFX`.
-
-**AD-RN-02 - Shader pipeline, materials, lighting, and debugging**<br>
-Prereq: `AD-RN-01`. Teach: vertex/fragment flow, spaces, uniforms, shaderc variants, material contracts, view order, RenderDoc capture, visual diagnostics, incorrect matrices/resources. Visual: coordinate spaces and shader pipeline. Check: match space to operation, debug broken render captures; 85%. Build/Test/Artifact: CI shader build, lit graybox material, debug normals/wireframe/overdraw-like view. Tests: compile all variants and stable screenshots. Done: annotated capture and tests. Effort: 10-14 h + 12 h. Milestone: `AD-GATE-01`. Optional: `R-BGFX`, `R-RENDERDOC`.
-
-**AD-RN-03 - Blender-to-glTF/GLB asset workflow**<br>
-Prereq: `AD-RN-02`. Teach: axes/units/transforms, meshes/materials/textures, naming, skeleton/animation preview, export settings, runtime-ready versus source assets, Git LFS, glTF validation. Visual: Blender source -> export -> validate -> import -> runtime. Check: diagnose scale/axis/material errors and choose asset form; 85%. Build/Test/Artifact: placeholder environment and character round trip with conventions document. Tests: glTF validator, missing texture/reference, repeatable export sample. Done: runtime capture and validation log. Effort: 6-10 h + 8 h. Milestone: `AD-GATE-01`. Optional: `R-GLTF`, `R-BLENDER`.
-
-**AD-RN-04 - Render architecture, diagnostics, budgets, and asset failure UX**<br>
-Prereq: `AD-RN-03`. Teach: scene extraction versus rendering, resource caches, fallback assets, pass ownership, debug draw, GPU/CPU budget thinking, lazy/async boundaries, no server rendering dependency. Visual: simulation snapshot -> presentation facade -> render queue. Check: architecture scenarios and failure triage; 85%. Build/Test/Artifact: render submission facade, missing-asset marker, pass toggles, frame capture checklist. Tests: scene reload, invalid asset, server target links without renderer. Done: design review and automated smoke. Effort: 6-9 h + 8 h. Milestone: `AD-GATE-01`. Optional: `R-BGFX`, `R-TRACY`.
-
-### Module AD-DT - EnTT, schemas, serialization, and tools
-
-**AD-DT-01 - ECS tradeoffs, entities, components, systems, and services**<br>
-Prereq: `AD-RN-04`. Teach: ECS strengths/limits, data-oriented iteration, entity identity, components versus services, events/commands, avoiding “everything is ECS,” client/server/shared placement. Visual: entity/component tables and system query. Check: classify concerns, repair coupling and boolean-component abuse; 85%. Build/Test/Artifact: EnTT playground with player/enemy/projectile/pickup/trigger and inspector. Tests: create/destroy, stale references, iteration behavior. Done: architecture reflection and tests. Effort: 7-10 h + 10 h. Milestone: `AD-GATE-01`. Optional: `R-ENTT`, `R-DOD`.
-
-**AD-DT-02 - Stable identity, lifecycle, relationships, and serialization boundaries**<br>
-Prereq: `AD-DT-01`. Teach: runtime entity IDs versus persistent IDs versus network IDs, parent/ownership relationships, spawn/despawn, snapshots, saveable versus derived state, version fields. Visual: ID domains and translation map. Check: choose ID and lifetime for scenarios; round-trip reasoning; 85%. Build/Test/Artifact: stable ID registry and serialization-friendly component boundary. Tests: ID reuse, missing reference, round trip, migration placeholder. Done: tests and schema review. Effort: 6-9 h + 8 h. Milestone: `AD-GATE-01`. Optional: `R-ENTT`, `R-JSON`.
-
-**AD-DT-03 - Gameplay schemas, registries, validation, and references**<br>
-Prereq: `AD-DT-02`. Teach: JSON schema-like validation for abilities, weapons, items, affixes, enemies, encounters; parse/validate/link/freeze pipeline; descriptive errors; cyclic and missing references; deterministic ordering. Visual: content compiler stages. Check: repair malformed definitions and design invariants; 90% including all integrity items. Build/Test/Artifact: data registry with sample ability/weapon/item/affix and validation CLI. Tests: unknown IDs, cycles, ranges, duplicates, deterministic output. Done: CI validator green. Effort: 8-12 h + 12 h. Milestone: `AD-GATE-01`. Optional: `R-JSON`.
-
-**AD-DT-04 - Hot reload, authoritative boundaries, and developer tools**<br>
-Prereq: `AD-DT-03`. Teach: safe presentation reload, unsafe authoritative mutation, generation/version handles, transactional reload, inspector/edit distinction, record/replay test arenas. Visual: prepare/validate/swap/rollback flow. Check: decide what may reload during local/network play; debug stale references; 85%. Build/Test/Artifact: transactional config/content reload for non-authoritative sandbox plus entity/content inspectors. Tests: invalid reload preserves old state; changed IDs produce warning. Done: demonstration and tests. Effort: 6-9 h + 9 h. Milestone: `AD-GATE-01`. Optional: `R-IMGUI`, `R-ENTT`.
-
-**AD-DT-05 - Asset/content pipeline automation and localization-ready data**<br>
-Prereq: `AD-DT-04`. Teach: model/texture/shader/animation/nav/data/localization build steps, dependency hashes, generated versus source artifacts, CI cache, manifest, human-readable errors, stable string keys. Visual: asset DAG and CI outputs. Check: order pipeline, detect stale generated content, localization-key scenarios; 85%. Build/Test/Artifact: content-build target and manifest with validation hooks; placeholder locale bundle. Tests: clean/incremental build and missing localization key. Done: reproducible pipeline evidence. Effort: 7-10 h + 10 h. Milestone: `AD-GATE-01`. Optional: `R-CMAKE`, `R-GLTF`.
-
-## Stage 2 - Simulation, movement, animation, and combat
-
-> **Stage-to-project connection:** this stage ends at `checkpoint/05-combat-vertical`: the authoritative capsule motor, traversal/query layer, animation presentation, targeting, action timeline, three-hit chain, block/perfect-block/guard-break, dodge charges, damage pipeline, tags, and statuses must work as one traceable command-to-result path. This path becomes the only combat route used by abilities, AI, and networking. Gate evidence is a matching headless and rendered trace with boundary tests. Use Jolt, ozz, ImGui, fixed-timestep, and accessibility links directly beside the relevant lesson.
-
-### Module AD-SM - Fixed-step simulation and Jolt gameplay queries
-
-**AD-SM-01 - Fixed-step simulation and render interpolation**<br>
-Prereq: `AD-DT-05`. Teach: variable timestep failure, fixed accumulator, 30 Hz baseline, headroom/spiral of death, deterministic-enough replay, previous/current render interpolation, command queues. Visual: render frames crossing fixed ticks. Check: calculate ticks/alpha, order commands, diagnose divergent rates; 90%. Build/Test/Artifact: headless-capable fixed-step sandbox with uncapped interpolated client view. Tests: same scripted input at 30/60/144 render FPS yields equivalent simulation. Done: tests and timing capture. Effort: 8-12 h + 12 h. Milestone: `AD-GATE-01`. Optional: `R-GAFFER-TIME`.
-
-**AD-SM-02 - Jolt world, layers, shapes, and query API**<br>
-Prereq: `AD-SM-01`. Teach: bodies/shapes, broad/narrow phases, collision layers/filters, raycasts, overlaps, sweeps/shape casts, query ownership and units. Visual: collision filtering and sweep volume. Check: select query and filter; debug false hits/tunneling; 85%. Build/Test/Artifact: Jolt sandbox and shared world-query facade with debug draw. Tests: layer matrix, ray/sweep/overlap consistency, no-hit behavior. Done: query matrix and tests. Effort: 8-12 h + 12 h. Milestone: `AD-GATE-01`. Optional: `R-JOLT`.
-
-**AD-SM-03 - Character controller: slopes, stairs, ledges, and frame invariance**<br>
-Prereq: `AD-SM-02`. Teach: virtual/kinematic controller tradeoffs, grounding, walkable normals, step negotiation, depenetration, acceleration/braking, moving platforms boundary, camera collision. Visual: slope/step decision flow. Check: diagnose controller edge cases; 90%. Build/Test/Artifact: graybox traversal map and tuned controller. Tests: ascent/descent, stairs, ledges, corners, varying render rates, focus pause. Done: traversal checklist and automated scenarios. Effort: 10-14 h + 16 h. Milestone: `AD-GATE-01`. Optional: `R-JOLT`.
-
-**AD-SM-04 - Forced movement, knockback, dodge displacement, and combat query contracts**<br>
-Prereq: `AD-SM-03`. Teach: intent versus resolved motion, server-validatable displacement, wall clipping, sweeps, melee trace paths, block-facing arcs, hitbox/hurtbox/debug conventions. Visual: proposed motion -> sweep -> slide/reject -> state. Check: choose resolution for lunge/dodge/knockback; 90%. Build/Test/Artifact: forced-movement API, backward-wall dodge case, swept melee trace, hit visualization. Tests: tunneling, wall/ledge, multiple targets, repeated hit suppression. Done: tests and captured debug overlay. Effort: 8-12 h + 12 h. Milestone: `AD-GATE-01`. Optional: `R-JOLT`.
-
-### Module AD-AN - Ozz and the animation-combat contract
-
-**AD-AN-01 - Skeletons, clips, offline conversion, and runtime sampling**<br>
-Prereq: `AD-RN-03`, `AD-SM-01`. Teach: skeleton hierarchy, bind/local/model space, clips/tracks, offline conversion/compression, sampling and skinning data flow, asset compatibility errors. Visual: Blender rig -> ozz archive -> sampled pose -> skinning. Check: space/hierarchy and import debugging; 85%. Build/Test/Artifact: one hero and enemy idle/run/attack clip through ozz. Tests: missing bones, repeatable conversion, resource reload. Done: runtime playback and pipeline log. Effort: 8-12 h + 12 h. Milestone: `AD-GATE-01`. Optional: `R-OZZ`.
-
-**AD-AN-02 - Animation graph, locomotion blending, layers, and additive reactions**<br>
-Prereq: `AD-AN-01`. Teach: state graphs versus blend trees, parameters, transitions, crossfade, locomotion blend, upper-body layer, masks, additive hit reacts, transition interruption. Visual: minimal graph and layer stack. Check: select blend/layer, repair popping/ownership bugs; 85%. Build/Test/Artifact: idle/run and upper-body block/attack graph with hit reaction. Tests: transition stability and parameter boundaries. Done: debug graph capture and tests. Effort: 8-12 h + 12 h. Milestone: `AD-GATE-01`. Optional: `R-OZZ`.
-
-**AD-AN-03 - Event tracks and authoritative gameplay windows**<br>
-Prereq: `AD-AN-02`, `AD-SM-04`. Teach: startup/active/recovery/lockout/buffer/cancel windows, VFX/SFX notifies, presentation event versus server outcome, tick conversion, duplicate/missed events, frame variance. Visual: animation time, fixed ticks, active hit window, network confirmation. Check: order and classify events; debug skipped/double event; 90%. Build/Test/Artifact: event schema and timing overlay for two attacks and block raise. Tests: variable render FPS, loop boundary, replay. Done: contract document and tests. Effort: 8-12 h + 12 h. Milestone: `AD-GATE-01`. Optional: `R-OZZ`, `R-GAFFER-TIME`.
-
-**AD-AN-04 - Root motion, motion extraction, facing override, and server agreement**<br>
-Prereq: `AD-AN-03`. Teach: code-driven versus extracted motion, explicit per-move policy, assist-facing startup window, server movement rule, collision truncation, reconciliation consequences, root rotation. Visual: authored trajectory versus collision-resolved authoritative trajectory. Check: policy/tradeoff scenarios; 90%. Build/Test/Artifact: one declared motion-extracted lunge and one code-driven attack. Tests: wall collision, capped angle/speed, server-replayable displacement. Done: policy and automated cases. Effort: 7-10 h + 10 h. Milestone: `AD-GATE-01`. Optional: `R-OZZ`.
-
-**AD-AN-05 - Combat animation debugging, IK restraint, and gameplay/presentation separation**<br>
-Prereq: `AD-AN-04`. Teach: timing audit, pose/trace overlay, blend-out/cancel rules, hit-stop allowance, simple look/foot IK, when IK damages authored combat, replicated compact action tags. Visual: gameplay state versus animation state ownership matrix. Check: diagnose desyncs and choose authority; 90%. Build/Test/Artifact: animation inspector and combat-window audit checklist; optional restrained head/foot IK. Tests: cancellation, late confirmation, reduced render rate. Done: debug evidence and authority map. Effort: 6-9 h + 8 h. Milestone: `AD-GATE-01`. Optional: `R-OZZ`, `R-IMGUI`.
-
-### Module AD-CB - Canonical third-person combat law
-
-**AD-CB-01 - Camera-relative locomotion and independent facing**<br>
-Prereq: `AD-SM-03`, `AD-PL-02`. Teach: project camera forward/right onto locomotion plane, normalize intent, movement-facing yaw, idle camera independence, free/attack-steer/hit-react/forced-motion facing states. Visual: vector construction and facing-state diagram. Check: vector reasoning and camera-only rotation cases; 100% on contract items. Build/Test/Artifact: movement/facing prototype with arrows and replay. Tests: orbit while moving and while idle; camera never directly rotates character. Done: contract tests and feel notes. Effort: 5-7 h + 10 h. Milestone: `AD-GATE-01`. Optional: `R-SDL`.
-
-**AD-CB-02 - Soft target selection, stability, and invalidation**<br>
-Prereq: `AD-CB-01`, `AD-DT-03`. Teach: nearest living hostile within main-weapon selection range regardless of facing, selection versus hit validity, hysteresis/tie-breaks, death/occlusion/teleport/phasing/corpse/faction/range/off-screen cases. Visual: candidate scoring and invalidation flow. Check: rank candidates and debug flicker; 100% on facing-independent selection. Build/Test/Artifact: scorer, target debug overlay, replay fixtures. Tests: crossing targets, behind player, equal distance, invalidation transitions. Done: tests and assessment. Effort: 6-9 h + 10 h. Milestone: `AD-GATE-01`. Optional: `R-GPP`.
-
-**AD-CB-03 - Tab lock without camera lock or forced strafing**<br>
-Prereq: `AD-CB-02`. Teach: explicit lock state, acquire/current/release/cycle rules, free camera, normal movement-facing locomotion, optional skill-specific strafe distinct from global lock, HUD state. Visual: soft/locked/invalid target state machine. Check: scenario decisions; 100% on no camera lock/no forced strafe. Build/Test/Artifact: lock and manual/cycle controls with world/HUD marker. Tests: camera orbit, movement facing, death/range/manual release. Done: tests and accessibility input check. Effort: 4-6 h + 8 h. Milestone: `AD-GATE-01`. Optional: `R-STEAMINPUT`.
-
-**AD-CB-04 - Attack-facing, directional skills, aimed skills, and hit validity**<br>
-Prereq: `AD-CB-03`, `AD-AN-04`. Teach: startup-only capped target assistance, max angle/turn speed per ability, directional character-facing skills, future camera/reticle aim, independent range/angle/collision/LOS validation. Visual: selection, facing resolution, shape validation pipeline. Check: resolve eight scenarios and spot illegal snap-turn; 90%. Build/Test/Artifact: facing resolver and directional/target-assisted/aimed test abilities. Tests: cap, target loss, miss despite selection, camera aim. Done: tests and inspector trace. Effort: 6-9 h + 10 h. Milestone: `AD-GATE-01`. Optional: `R-JOLT`.
-
-**AD-CB-05 - Three-hit holdable basic chain**<br>
-Prereq: `AD-CB-04`, `AD-AN-03`. Teach: startup/active/recovery, hold continuation, press buffering, buffer windows, combo timeout, interruption, movement commitment, weapon-authored steps, stronger finisher, no direct skip. Visual: three-step timing and state graph. Check: order inputs/windows, debug early/late buffers; 90%. Build/Test/Artifact: two weapon data records with distinct chains and slow-motion overlay. Tests: hold, press buffer, timeout, interrupt, finisher, no skip. Done: playable chain and tests. Effort: 8-12 h + 14 h. Milestone: `AD-GATE-01`. Optional: `R-OZZ`.
-
-**AD-CB-06 - Main/sub weapons and 2/2/4/1 loadout semantics**<br>
-Prereq: `AD-CB-05`, `AD-DT-03`. Teach: main weapon defines basics/range/timings/native package; two main slots; two borrowed sub-weapon slots; four class slots; one ultimate; granted versus bound ability; validation; live versus snapshotted weapon stats; swap policy as explicit decision. Visual: weapon package/loadout relationship model. Check: valid/invalid loadouts and inheritance scenarios; 90%. Build/Test/Artifact: generic loadout schema/validator and UI-neutral binding API. Tests: illegal slot, missing requirements, sub swap leaves basic chain unchanged. Done: tests and decision record. Effort: 7-10 h + 12 h. Milestone: `AD-GATE-02`. Optional: `R-JSON`.
-
-**AD-CB-07 - Held block, stamina, perfect block, and guard break**<br>
-Prereq: `AD-CB-05`, `AD-AN-03`. Teach: discrete raise cost, hold drain, block arc, perfect window, refund raise cost only, punish opportunity, zero-stamina guard break, no block until full recovery, server timing truth. Visual: defense state machine and stamina timeline. Check: calculate stamina/refunds and resolve timing cases; 100% on refund/order rules. Build/Test/Artifact: duel room with tunable block telemetry. Tests: normal/perfect, empty stamina, no over-refund, arc, recovery. Done: tests and combat-log evidence. Effort: 7-10 h + 12 h. Milestone: `AD-GATE-02`. Optional: `R-JOLT`.
-
-**AD-CB-08 - Two independently recharging dodge charges**<br>
-Prereq: `AD-CB-07`, `AD-SM-04`. Teach: per-charge timers, character-facing direction, displacement validation, i-frame window separate from motion, buffering/cancel policy, HUD replication/save implications, server truth/client anticipation. Visual: two charge timelines and dodge state. Check: charge arithmetic and validation scenarios; 100% on independence/facing. Build/Test/Artifact: dodge with two timers and HUD. Tests: consume/refill overlap, wall/ledge, i-frame boundary, render rates. Done: tests and manual feel checklist. Effort: 5-8 h + 10 h. Milestone: `AD-GATE-02`. Optional: `R-GAFFER-TIME`.
-
-**AD-CB-09 - Canonical damage, status, and post-hit pipeline**<br>
-Prereq: `AD-CB-07`, `AD-CB-08`, `AD-FD-05`. Teach: validate -> dodge/immunity -> block -> modifiers -> shields -> health -> post-hit reactions; armor/resistance/penetration/crit/vulnerability; shields; damage/heal; status tags; stacking/refresh/exclusivity/cleanse/CC DR/immunity; deterministic logs. Visual: damage flow and modifier graph. Check: calculate/order complex hits and repair alternate pipelines; 100% order + 85% overall. Build/Test/Artifact: single shared pipeline and trace log. Tests: formula table, status laws, repeatability. Done: full test suite. Effort: 10-14 h + 16 h. Milestone: `AD-GATE-02`. Optional: `R-GTEST`.
-
-**AD-CB-10 - Combat feedback, telegraphs, reactive windows, and failure reasons**<br>
-Prereq: `AD-CB-09`, `AD-RN-04`. Teach: HUD/world target indicators, telegraphs, cooldown/resource/charges, block/dodge/punish windows, hit/immune/out-of-range/LOS/resource/cooldown failure, combat logs, effect priority, no color-only signals. Visual: action-result event fan-out to HUD/VFX/audio/log. Check: map state to feedback and accessibility critique; 90%. Build/Test/Artifact: feedback event facade, combat HUD slice, failure reason catalog. Tests: every rejection produces stable code and accessible cue. Done: audit checklist and tests. Effort: 7-10 h + 12 h. Milestone: `AD-GATE-02`. Optional: `R-XAG`, `R-RMLUI`.
-
-`AD-GATE-01` exit: written combat contract and disposable feel probes demonstrate camera/movement/target/lock/basic/block/dodge behavior worth preserving. Durable work then continues into `AD-GATE-02`; prototypes themselves need not survive.
-
-## Stage 3 - Skills, hybrid progression, loot, and persistence
-
-> **Stage-to-project connection:** this stage turns hard-coded combat into `checkpoint/13-durable-progression`: one complete data-driven class/build package, main/sub weapons, effects/stats, skill tree, item/affix/loot rules, personal ownership, inventory/equipment commands, XP, versioned saves, migrations, and retry-safe transactions. The playable proof is kill -> loot -> equip -> allocate -> save -> restart -> load with identical derived state and no duplicate item. Use JSON, GoogleTest, filesystem, Steam Cloud, and the Chapter 12-13 starter hints at the moment a schema or transaction blocks you.
-
-### Module AD-RP - Ability architecture and Diablo II-inspired buildcraft
-
-**AD-RP-01 - Generic ability definition and execution pipeline**<br>
-Prereq: `AD-CB-06`, `AD-CB-09`. Teach: stable ability ID, tags, target/facing/range/shape, cost/cooldown, cast timeline, effects, movement, cancel rules, presentation/network hints; definition versus runtime instance; request/precondition/resolve/commit/failure. Visual: ability schema and execution flow. Check: label fields, repair underspecified definitions, trace activation; 90%. Build/Test/Artifact: registry/executor and three schema-complete sample abilities. Tests: validation, cost/cooldown atomicity, cancellation, failure codes. Done: tests and schema docs. Effort: 8-12 h + 16 h. Milestone: `AD-GATE-02`. Optional: `R-JSON`.
-
-**AD-RP-02 - Target, facing, range, shape, payload, and cancel composition**<br>
-Prereq: `AD-RP-01`. Teach: self/ally/hostile/ground/directional/aimed modes; line/cone/sphere/capsule/projectile; LOS/range/angle; cast/channel/toggle/charge; cancel gates; damage/heal/shield/buff/debuff/CC/movement payloads; avoid one-off subclasses. Visual: orthogonal ability axes. Check: compose twelve skill concepts and flag contradictory fields; 90%. Build/Test/Artifact: data-driven melee, projectile, ground heal, ally shield, and movement skill. Tests: each axis and invalid combinations. Done: matrix green. Effort: 7-10 h + 14 h. Milestone: `AD-GATE-02`. Optional: `R-GPP`.
-
-**AD-RP-03 - Class identity, role leaning, resources, and mechanics**<br>
-Prereq: `AD-RP-02`. Teach: class fantasy as rules not cosmetics; tank/healer/DPS/support leaning without rigid party requirement; class resources, generators/spenders, signature states, role clarity, server-owned resource truth, readable UI. Visual: class mechanic loop and party-role overlap. Check: distinguish identity from raw coefficients and critique resource loops; 85%. Build/Test/Artifact: one class mechanic/resource design and executor hooks. Tests: generation/spend caps, reset/death/reconnect behavior. Done: design rubric and tests. Effort: 5-8 h + 10 h. Milestone: `AD-GATE-02`. Optional: `R-GPP`.
-
-**AD-RP-04 - Main weapon packages and borrowed sub-weapon skills**<br>
-Prereq: `AD-RP-03`, `AD-CB-06`. Teach: main basics/native skills/range/timing identity; sub-package selective import; weapon requirements; live versus snapshotted stats; passive applicability; swap cooldown recommendation; UI/tooltips showing provenance. Visual: class + main package + borrowed sub skill evaluator. Check: inheritance and invalidation scenarios; 90%. Build/Test/Artifact: one main and one sub package with two borrowed skills. Tests: swap, requirements, tag/passive effects, basic-chain invariance. Done: package tests and decision record. Effort: 6-9 h + 12 h. Milestone: `AD-GATE-02`. Optional: `R-JSON`.
-
-**AD-RP-05 - Tag grammar and rule composition**<br>
-Prereq: `AD-RP-04`, `AD-FD-05`. Teach: namespaces such as `weapon:sword`, `role:tank`, `damage:holy`, `state:blocking`, `delivery:projectile`, `target:ally`, `proc:on-perfect-block`, `resource:stamina`; requirements, grants, queries, conversion, conflict, UI filters; preventing boolean explosion. Visual: tag query and modifier graph. Check: normalize ad hoc rules into tags and detect ambiguous/cyclic compositions; 90%. Build/Test/Artifact: versioned tag registry/query language and validation rules. Tests: unknown tags, contradictions, deterministic matching. Done: tag-spec approval and tests. Effort: 7-10 h + 12 h. Milestone: `AD-GATE-02`. Optional: `R-JSON`.
-
-**AD-RP-06 - Class trees, points, prerequisites, ranks, and passives**<br>
-Prereq: `AD-RP-05`. Teach: Diablo II-inspired commitment; tree branches, unlock level, skill points, rank caps, prerequisites, passive nodes, active unlocks, synergy edges, ultimate branches, legal build validation. Visual: directed acyclic prerequisite graph. Check: validate allocations, order transactions, identify traps/cycles; 90%. Build/Test/Artifact: modest 20-30 node tree for the first class and generic allocator. Tests: prerequisite, refund, cap, save round trip. Done: validator green and tree review. Effort: 8-12 h + 16 h. Milestone: `AD-GATE-02`. Optional: `R-D2`.
-
-**AD-RP-07 - Synergies, respec, build-defining interactions, and buildcraft literacy**<br>
-Prereq: `AD-RP-06`. Teach: transparent synergies, tag-based conversions, passive/weapon/class interactions, soft versus hard commitment, respec policy, model-answer build comparison, avoiding mandatory hidden math and irreversible beginner traps. Visual: contribution trace from node/item/weapon to final skill. Check: construct and explain two builds; debug illegal/respec states; 85%. Build/Test/Artifact: respec transaction, derivation/explanation UI data, two example builds. Tests: atomic refund/reapply, no negative points, reconnect. Done: buildcraft assessment and tests. Effort: 7-10 h + 12 h. Milestone: `AD-GATE-02`. Optional: `R-D2`.
-
-**AD-RP-08 - Item bases, identity, slots, rarity, and affix grammar**<br>
-Prereq: `AD-RP-05`, `AD-DT-03`. Teach: item definition versus instance, GUID, item/required level, weapon/armor/jewelry bases, common/magic/rare/unique, prefix/suffix pools, families, weights, tiers, exclusivity, tag requirements, tooltip schema. Visual: definition -> seeded roll -> persistent instance. Check: roll legality, schema repair, identity scenarios; 90%. Build/Test/Artifact: item/affix definitions and validator. Tests: bounds, exclusivity, missing family, serialization. Done: test corpus and inspector. Effort: 8-12 h + 16 h. Milestone: `AD-GATE-02`. Optional: `R-JSON`.
-
-**AD-RP-09 - Server-owned loot rolls, personal ownership, and economy boundaries**<br>
-Prereq: `AD-RP-08`, `AD-RP-01`. Teach: loot tables/budgets, deterministic test seeds versus unpredictable production RNG, server creation, personal/instanced visibility, pickup rights, party reward chest, ownership transfers, no client-authored grants, anti-duplication transaction boundaries. Visual: kill -> server roll -> ownership -> pickup -> save. Check: threat-model economy messages and calculate weighted rolls; 100% trust-boundary items. Build/Test/Artifact: authoritative loot generator contract and local server implementation. Tests: two-player separate drops, duplicate request, disconnect, seed distribution. Done: ownership tests. Effort: 8-12 h + 16 h. Milestone: `AD-GATE-02`. Optional: `R-GNS`.
-
-**AD-RP-10 - Inventory, equipment, stash, comparison, and item persistence**<br>
-Prereq: `AD-RP-09`. Teach: inventory transactions, slot validation, equipment-derived stats, sorting/filtering, tooltip comparison, stash scope, item instance lifecycle, save checkpoints, rollback, no ad hoc object serialization. Visual: inventory transaction and derived-stat invalidation. Check: sequence transactions and diagnose duplicate/lost item bugs; 90%. Build/Test/Artifact: inventory/equipment/stash v1 and item save schema. Tests: equip swap, full inventory, repeated request, save/load identity, crash boundary. Done: tests and UI evidence. Effort: 9-13 h + 18 h. Milestone: `AD-GATE-02`. Optional: `R-RMLUI`.
-
-**AD-RP-11 - Progression/loot pacing, uniques, migrations, and economy observability**<br>
-Prereq: `AD-RP-07`, `AD-RP-10`. Teach: XP/level/point cadence, rarity/affix pacing, build-defining uniques, weapon/class interaction, reward loops, telemetry without dark patterns, save version migrations and validation, economy non-goals (no broad crafting initially). Visual: progression loop and migration ladder. Check: pacing table critique, migration design, unique interaction trace; 85%. Build/Test/Artifact: XP/small talent progression, one build-defining unique, save v1->v2 migration, loot-roll inspector. Tests: legal builds across migration, no lost IDs/points. Done: migration and pacing review. Effort: 8-12 h + 16 h. Milestone: `AD-GATE-02`. Optional: `R-STEAMCLOUD`.
-
-## Stage 4 - Navigation, AI, and encounters
-
-> **Stage-to-project connection:** this stage ends at `checkpoint/14-encounter`: a navmesh/query tool, perception, threat, shared-command behavior, melee/ranged/support enemies, and one boss encounter with wipe/reset/reward must reuse the player movement/ability/combat path. The gate is a complete headless and rendered encounter, including reset and 1/2/4/8 scaling evidence. Recast, Game AI Pro, the behavior-tree survey, Jolt, and Tracy are linked again in Chapter 14 because they are implementation aids for this exact checkpoint.
-
-### Module AD-AI - Recast/Detour and server-owned encounter intelligence
-
-**AD-AI-01 - Navmesh concepts, Recast build, Detour queries, and debug views**<br>
-Prereq: `AD-SM-03`, `AD-DT-05`. Teach: rasterization/voxels, walkability, regions/polygons, agent settings, offline bake, Detour query, path corridor, navmesh as substrate not intelligence. Visual: geometry-to-navmesh pipeline. Check: tune config and diagnose missing/merged regions; 85%. Build/Test/Artifact: navmesh CLI/tool and runtime overlay for graybox. Tests: bake/load, reachable/unreachable, agent sizes. Done: artifact and test map. Effort: 8-12 h + 14 h. Milestone: `AD-GATE-02`. Optional: `R-RECAST`.
-
-**AD-AI-02 - Tiled navmesh, obstacles, crowd/steering, and query budgets**<br>
-Prereq: `AD-AI-01`. Teach: single versus tiled meshes, TileCache/dynamic obstacles, path replans, local avoidance/steering, DetourCrowd tradeoffs, server query budgets and debug telemetry. Visual: hierarchical path plus local steering. Check: select tile/update strategy and triage budget spikes; 85%. Build/Test/Artifact: tiled test space, blocked-door reroute, budget panel. Tests: obstacle add/remove, crowd congestion, bounded replans. Done: tests and profile. Effort: 7-10 h + 12 h. Milestone: `AD-GATE-02`. Optional: `R-RECAST`.
-
-**AD-AI-03 - Behavior authoring model and action contracts**<br>
-Prereq: `AD-AI-02`, `AD-RP-01`. Teach: hierarchical state machines, behavior trees/utility scoring tradeoffs, tactical decision versus action execution, reusable conditions/tasks, data authoring, animation/combat action contract, failure/recovery. Visual: perception -> decision -> requested ability -> combat executor. Check: refactor monolithic AI and trace failure status; 85%. Build/Test/Artifact: chosen lightweight behavior model with melee and ranged archetypes. Tests: transition/action failure, no invalid ability bypass. Done: behavior fixtures. Effort: 8-12 h + 14 h. Milestone: `AD-GATE-02`. Optional: `R-BT-SURVEY`, `R-GAIPRO`.
-
-**AD-AI-04 - Perception, threat, taunts, healer threat, and role cooperation**<br>
-Prereq: `AD-AI-03`, `AD-RP-03`. Teach: perception/aggro/leash, threat entries from damage/heal/protection, decay, taunt override/value, scripted boss exceptions, healer targeting, support spacing, server ownership and inspectability. Visual: threat table changes over an encounter. Check: calculate target changes and resolve taunt/script conflicts; 90%. Build/Test/Artifact: threat service and 3-enemy role encounter. Tests: taunt, heal threat, death/leave, boss script override. Done: tests and debug table. Effort: 8-12 h + 14 h. Milestone: `AD-GATE-02`. Optional: `R-GAIPRO`.
-
-**AD-AI-05 - Enemy archetypes, status response, and readable telegraphs**<br>
-Prereq: `AD-AI-04`, `AD-CB-10`. Teach: melee/ranged/support/elite responsibilities, interrupt/stagger/CC immunity and diminishing returns, telegraph startup/shape/impact, punish windows, fair off-screen behavior, failure recovery. Visual: enemy action/telegraph timeline. Check: critique unfair attacks and design state/status responses; 90%. Build/Test/Artifact: third support/elite archetype plus telegraphed attacks. Tests: interrupt windows, CC rules, LOS/obstacle, reduced-effects readability. Done: combat review and tests. Effort: 7-10 h + 12 h. Milestone: `AD-GATE-02`. Optional: `R-XAG`.
-
-**AD-AI-06 - Encounters, boss phases, resets, anti-zerg rules, and pacing**<br>
-Prereq: `AD-AI-05`. Teach: encounter director, spawn budgets/waves, leash/reset/wipe, phase state, target-priority, split pressure, interrupts/positional danger, anti-zerg without HP inflation, replayable reward hook. Visual: encounter and boss phase state machines. Check: scenario design and reset diagnosis; 85%. Build/Test/Artifact: one boss skeleton and combat gauntlet. Tests: phase transition, wipe/reset, add spawn, taunt exception, reward once. Done: scripted completion and tests. Effort: 10-14 h + 18 h. Milestone: `AD-GATE-02`. Optional: `R-GAIPRO`.
-
-**AD-AI-07 - One-to-eight player scaling and encounter performance budgets**<br>
-Prereq: `AD-AI-06`. Teach: mixed health/damage/add/elite/mechanic scaling, healer load, revive tension, threat stability, active thinker/nav/projectile/ground-effect caps, profiles at 1/2/4/6/8, readable priority. Visual: scaling dimensions versus party size. Check: improve health-only curve and choose budget reactions; 90%. Build/Test/Artifact: party-size scaling data and bot/simulation harness. Tests: composition at each size, cap behavior, no reward duplication. Done: scaling worksheet and automated assertions. Effort: 8-12 h + 14 h. Milestone: `AD-GATE-02` then `AD-GATE-04`. Optional: `R-TRACY`.
-
-`AD-GATE-02` exit - local authoritative vertical slice:
-
-- Durable `/client`, `/server`, `/shared`, `/tools`, `/tests`, and `/assets` targets; solo play connects to the localhost dedicated server path.
-- One complete class, one main weapon family, one sub-weapon family, 2/2/4/1 slots, full combat state/feedback, data-driven abilities/status/items/affixes, progression v1.
-- Three enemy archetypes and one boss in a 10-15 minute replayable run; personal loot, inventory, stash, XP/small tree, save/load/migration.
-- Entity/combat/target/hit/AI/threat/loot/network/save inspectors; formula, timing, schema, save, and smoke tests; basic profiling.
-- Required evidence: commit hash, architecture diagram, recorded run or screenshots, CI summary, test matrix, known limitations, and learner attestation. Completion is self-verified, not automatic repository inspection.
-
-## Stage 5 - Dedicated networking, authority, and persistence
-
-> **Stage-to-project connection:** this stage ends at `checkpoint/15-networked-game`: the complete encounter must run through a dedicated server with version negotiation, bounded protocol messages, commands, prediction/reconciliation, snapshots, relevance, party/session flow, owner-only durable state, late join, reconnect, persistence, and hostile-input tests. The gate is repeated two-player then eight-player completion under named network faults with privacy and corruption checks. Use GameNetworkingSockets, the Gaffer networking articles, Snapshot Interpolation, and libFuzzer from Chapters 7 and 15 as hands-on references.
-
-### Module AD-NW - Eight-player client/server architecture
-
-**AD-NW-01 - Client/server/shared separation and authority map**<br>
-Prereq: `AD-GATE-02`. Teach: dedicated session server, localhost solo equivalence, simulation/presentation/transport separation, server ownership of movement resolution/combat/AI/loot/inventory/progression/persistence, client camera/prediction/presentation, shared pure rules. Visual: process/dependency/authority diagrams. Check: place 30 responsibilities and repair forbidden dependencies; 100% authority items. Build/Test/Artifact: executable separation audit and living authority table. Tests: headless server links/runs without bgfx/RmlUi. Done: architecture gate. Effort: 6-9 h + 10 h. Milestone: `AD-GATE-03`. Optional: `R-GAFFER-NET`.
-
-**AD-NW-02 - GameNetworkingSockets, connection lifecycle, and message classes**<br>
-Prereq: `AD-NW-01`. Teach: transport versus replication, authenticated/encrypted transport capability, connect/handshake/disconnect, reliable ordered versus unreliable sequenced, fragmentation, lanes/priorities, message version/header, chat/echo harness. Visual: lifecycle and lane map. Check: choose delivery for each message and diagnose head-of-line misuse; 90%. Build/Test/Artifact: loopback client/server harness and protocol header/spec. Tests: connect/reject/version/disconnect/retry. Done: transport tests. Effort: 8-12 h + 14 h. Milestone: `AD-GATE-03`. Optional: `R-GNS`.
-
-**AD-NW-03 - Fixed-tick input commands and server movement validation**<br>
-Prereq: `AD-NW-02`, `AD-SM-01`. Teach: client sequence/tick, sampled action command, coalescing, acknowledgements, server queue, stale/future/rate/acceleration/state checks, dropped-input tolerance, camera aim as request data not replicated camera. Visual: command from capture through authoritative tick. Check: validate traces and identify impossible commands; 90%. Build/Test/Artifact: movement intent protocol and authoritative server application. Tests: reorder/drop/duplicate/stale/future/CC/dead cases. Done: test harness green. Effort: 8-12 h + 16 h. Milestone: `AD-GATE-03`. Optional: `R-GAFFER-NET`.
-
-**AD-NW-04 - Local prediction, acknowledgements, and reconciliation**<br>
-Prereq: `AD-NW-03`. Teach: store unacknowledged commands, predict with shared rules, snapshot last processed sequence, rewind/correct/replay, error threshold/smoothing, non-predictable contacts, visible error bars. Visual: prediction/reconciliation timeline. Check: step through traces and fix double-apply; 90%. Build/Test/Artifact: predicted owner movement with correction overlay. Tests: 80/150/250 ms, loss/jitter, collision correction, bounded history. Done: profile and tests. Effort: 10-14 h + 18 h. Milestone: `AD-GATE-03`. Optional: `R-GAFFER-NET`.
-
-**AD-NW-05 - Snapshots, quantization, deltas, and remote interpolation**<br>
-Prereq: `AD-NW-04`. Teach: entity net state, server tick/snapshot ID, quantized transforms/velocity/resources/action tags, baselines/deltas, timestamped history, interpolation delay, extrapolation limit, stale/out-of-order rejection. Visual: 20 Hz samples rendered at 60+ FPS. Check: compute interpolation states and packet budget; 90%. Build/Test/Artifact: compact snapshot and four-actor interpolation scene. Tests: reorder/loss/jitter, quantization bounds, missing baseline. Done: visual stability and tests. Effort: 10-14 h + 18 h. Milestone: `AD-GATE-03`. Optional: `R-GAFFER-SNAPSHOT`.
-
-**AD-NW-06 - Relevance, interest management, priorities, and bandwidth budgets**<br>
-Prereq: `AD-NW-05`, `AD-AI-07`. Teach: per-client relevance graph, nearby engaged 20 Hz baseline, distant 5-10 Hz/event-driven, owner/party/boss/loot priority, enter/leave relevance, starvation prevention/priority accumulator, packet budget telemetry. Visual: interest rings plus prioritized send queue. Check: allocate a constrained packet and debug missing critical state; 90%. Build/Test/Artifact: relevance filter, priority scheduler, bandwidth graph. Tests: 8 clients, high entity density, starvation, spawn/despawn. Done: budget report. Effort: 9-13 h + 18 h. Milestone: `AD-GATE-04`. Optional: `R-GAFFER-SNAPSHOT`, `R-GNS`.
-
-**AD-NW-07 - Server-authoritative ability, combat, dodge, and block validation**<br>
-Prereq: `AD-NW-04`, `AD-RP-02`, `AD-CB-09`. Teach: activation request/accept/reject, equipped/unlocked/cooldown/resource/state/target/range/LOS/timing checks, server hit query, i-frame/perfect-block truth, client visual anticipation, result/event replication, lag policy without PvP overengineering. Visual: request -> validate -> resolve -> replicate. Check: attack malicious/desynced traces; 100% trust rules. Build/Test/Artifact: network the full combat slice. Tests: cooldown/resource spoof, duplicate, invalid target, late block/dodge, authoritative damage. Done: integration suite. Effort: 12-18 h + 24 h. Milestone: `AD-GATE-03`. Optional: `R-GNS`.
-
-**AD-NW-08 - Party, lobby, server assignment, authentication, and one-to-eight session flow**<br>
-Prereq: `AD-NW-02`. Teach: Steam lobby as future party/discovery layer not transport; internal session browser first; create/join/ready/character metadata/server assignment/connect/leave; session tickets planning; party leader scope; 1-8 capacity. Visual: lobby-to-dedicated-server sequence. Check: order flow and identify insecure lobby trust; 90%. Build/Test/Artifact: platform-neutral party/session service with local browser and eight-slot roster. Tests: full/duplicate/late ready/leader leave. Done: two-process flow. Effort: 8-12 h + 16 h. Milestone: `AD-GATE-03`. Optional: `R-STEAMLOBBY`, `R-STEAMAUTH`.
-
-**AD-NW-09 - Reconnect, late join, travel, wipe, and failure recovery**<br>
-Prereq: `AD-NW-08`, `AD-NW-05`. Teach: reconnect token/session binding, state resync, command history reset, late-join restrictions, boss lock policy, loading/travel, wipe/reset, server crash boundaries, idempotency. Visual: disconnect/reconnect state machine and resync snapshot. Check: failure scenarios and duplicate suppression; 90%. Build/Test/Artifact: short-drop reconnect and clean wipe/restart. Tests: reconnect during combat/reward/save, stale token, version mismatch. Done: drills and automated tests. Effort: 8-12 h + 16 h. Milestone: `AD-GATE-03`. Optional: `R-GNS`.
-
-**AD-NW-10 - Authoritative persistence, save versions, item integrity, and migrations**<br>
-Prereq: `AD-NW-07`, `AD-RP-11`. Teach: server-owned character snapshot, checkpoint/transaction log tradeoff, stable item IDs, protocol/save/content versions, atomic writes, checksums as corruption detection, migration/rollback, Steam Cloud later, backend unspecified boundary. Visual: authoritative event -> checkpoint -> versioned save -> migration. Check: corruption/rollback/duplication scenarios; 100% economy integrity. Build/Test/Artifact: server save service and two-version migration suite. Tests: crash interval, repeated reward, reconnect, invalid checksum/version, partial write. Done: integrity suite. Effort: 10-14 h + 20 h. Milestone: `AD-GATE-03`. Optional: `R-STEAMCLOUD`.
-
-**AD-NW-11 - PvE anti-cheat trust boundaries, rate limits, and audit logs**<br>
-Prereq: `AD-NW-07`, `AD-NW-10`. Teach: practical threat model; client may drive camera/input/presentation but not results; auth/session identity; sequence/time/sanity/rate checks; server RNG; progression audit events; parser bounds; no invasive kernel anti-cheat default. Visual: trust boundary/data-flow threat model. Check: classify spoof/replay/tamper/DoS cases and choose control; 100% authority items. Build/Test/Artifact: validation policy, rejection metrics, audit record, abuse-rate tests. Tests: malformed/oversize/replay/rate burst. Done: threat-model review. Effort: 7-10 h + 12 h. Milestone: `AD-GATE-03`. Optional: `R-STEAMAUTH`, `R-STEAMAC`.
-
-**AD-NW-12 - Network simulation, parser fuzzing, load, and soak tests**<br>
-Prereq: `AD-NW-06`, `AD-NW-11`. Teach: latency/loss/jitter/reorder profiles, bot clients, 2/4/6/8 progression, replay logs, snapshot/interest assertions, fuzzing untrusted decoders, memory/tick/bandwidth soak metrics, failure triage. Visual: test pyramid and network fault matrix. Check: choose test by failure and interpret traces; 90%. Build/Test/Artifact: automated network harness, packet simulation presets, one parser fuzzer, two-hour soak recipe. Done: two-player profile passes now; 8-player suite ready for Gate 04. Effort: 9-13 h + 18 h. Milestone: `AD-GATE-03` and `AD-GATE-04`. Optional: `R-LIBFUZZ`, `R-GNS`.
-
-`AD-GATE-03` exit - two-player proof: two remote clients repeatedly finish the vertical slice at representative latency/loss; authority, prediction, interpolation, party/revive, reconnect, loot ownership, and persistence behave correctly; no item duplication/progression corruption; traces and known limitations are captured.
-
-## Stage 6 - Party UX, production UI, readability, and accessibility
-
-> **Stage-to-project connection:** this stage ends at `checkpoint/08-player-experience`: RmlUi screens and HUD must expose the real replicated party/combat/inventory state, all flows must work with keyboard/mouse and controller, and eight-player telegraph/party priority must remain readable with scalable and reduced-effects modes. The gate is an accessibility/controller matrix plus 1/2/4/6/8-player captures and error/reconnect scenarios—not a static mockup. Use RmlUi, Steam Input, Xbox Accessibility Guidelines, and Game Accessibility Guidelines beside the UI tasks.
-
-### Module AD-UX - Eight-player player-facing systems
-
-**AD-UX-01 - RmlUi production architecture and UI data facades**<br>
-Prereq: `AD-GATE-03`, `AD-RN-04`. Teach: retained document/style/event model, render/system interfaces, UI state facade, localization keys, resolution/DPI, navigation, separation from ImGui debug UI, no direct ECS mutation from views. Visual: authoritative state -> presentation model -> RmlUi. Check: classify production/debug concerns and repair coupled UI; 85%. Build/Test/Artifact: HUD/menu shell with facade and theme tokens. Tests: resize, missing localization, server target headless. Done: architecture review. Effort: 8-12 h + 16 h. Milestone: `AD-GATE-04`. Optional: `R-RMLUI`.
-
-**AD-UX-02 - Party formation, roster, role clarity, ready state, and social signals**<br>
-Prereq: `AD-UX-01`, `AD-NW-08`. Teach: eight-slot condensed/expanded roster, ready/leader/session state, role-leaning icons without hard enforcement, distance/off-screen state, pings and optional quick chat, spam/cooldown and accessibility. Visual: party UI information hierarchy. Check: prioritize signals and resolve join/leave cases; 90%. Build/Test/Artifact: party/lobby screen, role indicators, ping protocol/UI. Tests: 1-8 layout, leave/rejoin, keyboard/controller. Done: UX test matrix. Effort: 7-10 h + 14 h. Milestone: `AD-GATE-04`. Optional: `R-RMLUI`, `R-STEAMINPUT`.
-
-**AD-UX-03 - Ally frames, death/downed/revive, healer triage, and off-screen awareness**<br>
-Prereq: `AD-UX-02`, `AD-AI-04`. Teach: health/shield/downed/cleanse/major defense/distance/direction; revive interrupt/window/limits; smart-heal fallback and group triage; server-owned revive; avoid UI overload. Visual: ally-frame priority layers and revive state. Check: triage scenarios and inaccessible designs; 90%. Build/Test/Artifact: ally frames and revive flow. Tests: eight players, simultaneous status, loss mid-revive, off-screen. Done: role-play test. Effort: 7-10 h + 14 h. Milestone: `AD-GATE-04`. Optional: `R-XAG`.
-
-**AD-UX-04 - Eight-player effect density, telegraph priority, and combat readability**<br>
-Prereq: `AD-UX-03`, `AD-CB-10`, `AD-AI-07`. Teach: hostile danger priority, reduced allied AoE, “mine/others” intensity, number/hit-spark/shake/camera controls, boss break/taunt/interrupt cues, color/timing channel limits, culling that preserves rules. Visual: render-priority stack in worst-case boss fight. Check: critique frames and allocate VFX budget; 90%. Build/Test/Artifact: effect categories, throttling, reduced-effects preset, worst-case capture. Tests: critical telegraphs visible at cap and under color filters. Done: readability review. Effort: 8-12 h + 16 h. Milestone: `AD-GATE-04`. Optional: `R-XAG`, `R-GAG`.
-
-**AD-UX-05 - Keyboard/mouse/controller parity, remapping, glyphs, and UI navigation**<br>
-Prereq: `AD-UX-01`, `AD-PL-02`. Teach: simultaneous input, action-based prompts, last-active-device without flicker, remapping/conflicts, D-pad/stick/focus navigation, couch readability, sensitivity/deadzone, disconnect. Visual: action-to-glyph and focus graph. Check: device scenarios and focus-order bugs; 100% critical parity items. Build/Test/Artifact: complete navigation/remap/glyph system for slice. Tests: all screens by mouse/keyboard/gamepad, unplug, same-frame devices. Done: device matrix. Effort: 7-10 h + 14 h. Milestone: `AD-GATE-04`. Optional: `R-STEAMINPUT`.
-
-**AD-UX-06 - Accessibility, UI scaling, localization readiness, and configurable feedback**<br>
-Prereq: `AD-UX-04`, `AD-UX-05`. Teach: text/subtitle/UI scale, contrast/color-safe indicators, reduced motion/shake/flashes, VFX opacity, input alternatives, captions, screen-safe areas, string expansion/plurals, no baked text, accessibility as continuous test. Visual: preference-to-presentation dependency map. Check: audit a screen and select remediations; 90%. Build/Test/Artifact: accessibility settings and pseudo-localized slice. Tests: 200% UI/text where supported, long strings, reduced effects/motion, color-only audit. Done: checklist and captures. Effort: 8-12 h + 16 h. Milestone: `AD-GATE-04`. Optional: `R-XAG`, `R-GAG`.
-
-`AD-GATE-04` exit - eight-player stress slice: exercise 2/4/6/8 participants or equivalent bots; complete an encounter under induced loss; preserve server tick headroom, bounded memory/bandwidth/AI/nav/projectile/VFX budgets, critical telegraphs, party/revive clarity, reconnect/late join, and reward/save integrity. Required evidence includes profile traces, packet graphs, readability captures with reduced effects, two-hour soak, faults found/fixed, and residual risk.
-
-## Stage 7 - QA, observability, Steam, and Early Access
-
-> **Stage-to-project connection:** this stage produces the actual release artifact: deterministic and integration suites, sanitizer/fuzz/load/soak lanes, budgets, logs/crashes/metrics, Steam adapter, client/server depots, compatibility/migration policy, support and rollback runbooks, truthful store copy, and a staged Early Access candidate. The final gate requires an immutable artifact installed, joined, crashed/triaged, patched, rolled back, and mapped claim-by-claim to evidence. Use CTest, sanitizers, Tracy, RenderDoc, Crashpad, OpenTelemetry, and the current Steamworks documentation embedded in Chapters 9 and 16.
-
-### Module AD-QA - Production quality engineering
-
-**AD-QA-01 - Layered automated test architecture and CI matrix**<br>
-Prereq: `AD-GATE-03`. Teach: unit/integration/simulation/content/network/smoke/end-to-end distinctions, deterministic micro-scenarios, platform/build matrices, test data, flaky-test policy, release blocking. Visual: test layers mapped to systems and branches. Check: select layer and rewrite brittle tests; 90%. Build/Test/Artifact: documented CI matrix with formula/combat/save/network/content/package suites. Test: intentional failure in each lane. Done: protected green pipeline. Effort: 7-10 h + 14 h. Milestone: `AD-GATE-05`. Optional: `R-GTEST`, `R-CTEST`.
-
-**AD-QA-02 - Sanitizers, static analysis, fuzzing, and concurrency safety**<br>
-Prereq: `AD-QA-01`. Teach: ASan/UBSan/TSan costs and coverage, clang-tidy, parser fuzz targets, seed corpus, minimizing crashes, thread ownership/job boundaries, targeted nightly lanes. Visual: defect class -> tool map. Check: interpret reports and avoid false fixes; 90%. Build/Test/Artifact: sanitizer/nightly jobs and fuzzers for save plus packet/content parsers. Done: clean target duration and fixed seeded defects. Effort: 7-10 h + 14 h. Milestone: `AD-GATE-05`. Optional: `R-ASAN`, `R-TSAN`, `R-LIBFUZZ`.
-
-**AD-QA-03 - Profiling and explicit performance budgets**<br>
-Prereq: `AD-GATE-04`. Teach: measure before optimize, Tracy CPU/memory/locks, RenderDoc GPU frames, server 30 Hz budget/headroom, AI/nav/packet/UI/VFX hot spots, percentile and worst-case scenes, regression budgets. Visual: frame/tick budget waterfall. Check: interpret captures and prioritize fixes; 90%. Build/Test/Artifact: budget sheet and annotated worst combat/boss/inventory traces; fix one measured bottleneck. Done: budgets enforced or documented. Effort: 8-12 h + 16 h. Milestone: `AD-GATE-05`. Optional: `R-TRACY`, `R-RENDERDOC`.
-
-**AD-QA-04 - Logging, crash capture, metrics, traces, and privacy**<br>
-Prereq: `AD-QA-03`, `AD-NW-11`. Teach: structured correlation IDs/ticks/actions, redaction, Crashpad/Sentry Native choice, symbol upload, OpenTelemetry metrics/traces/logs, consent/minimization, crash-to-repro workflow, no hot-path blocking. Visual: client/server event to crash/trace triage. Check: design useful non-sensitive event schema and triage sample failure; 90%. Build/Test/Artifact: crash hook, symbol/runbook, minimal telemetry schema with opt-out. Tests: intentional crash report and redaction. Done: triage rehearsal. Effort: 7-10 h + 14 h. Milestone: `AD-GATE-05`. Optional: `R-CRASHPAD`, `R-OTEL`.
-
-**AD-QA-05 - Long-session soak, patch-forward compatibility, and release candidate rehearsal**<br>
-Prereq: `AD-QA-02`, `AD-QA-04`. Teach: 2-4 hour and overnight profiles, memory creep, repeated travel/reward/save, server restart/reconnect, old save/new build, rollback limits, defect severity, go/no-go. Visual: release candidate qualification flow. Check: evaluate evidence and call no-go when warranted; 90%. Build/Test/Artifact: soak automation/runbook and compatibility matrix across several internal save versions. Done: candidate report with zero blocker corruption/crashes. Effort: 7-10 h + 16 h. Milestone: `AD-GATE-05`. Optional: `R-STEAMEA`.
-
-### Module AD-SH - Steam platform and live operations
-
-**AD-SH-01 - Steamworks boundary, Spacewar study, authentication, lobbies, and servers**<br>
-Prereq: `AD-GATE-04`, `AD-NW-08`. Teach: partner/SDK boundary, Spacewar as example, platform abstraction, session tickets, lobby metadata, dedicated server registration/SDR plan, offline/local fallback, licensing/access caveat. Visual: Steam services around platform-neutral runtime. Check: map responsibility and avoid coupling Steam to simulation; 90%. Build/Test/Artifact: integration plan and adapter interfaces; optional development integration when partner access exists. Done: architecture review; lack of partner access does not block conceptual lesson. Effort: 6-9 h + 8-16 h. Milestone: `AD-GATE-05`. Optional: `R-SPACEWAR`, `R-STEAMSERVER`.
-
-**AD-SH-02 - SteamPipe, depots, client/server packages, branches, and build promotion**<br>
-Prereq: `AD-SH-01`, `AD-QA-01`. Teach: App ID/depot/build scripts, client versus dedicated server output, separate Tool App ID planning, SteamCMD, private/password branches, immutable artifact promotion, version compatibility. Visual: commit -> CI artifact -> depot -> branch -> default. Check: repair unsafe upload/promotion flow; 90%. Build/Test/Artifact: upload scripts/templates, depot map, branch policy, packaged headless server. Tests: install/boot from staged package. Done: private rehearsal or documented dry run. Effort: 7-10 h + 14 h. Milestone: `AD-GATE-05`. Optional: `R-STEAMUPLOAD`, `R-STEAMSERVER`.
-
-**AD-SH-03 - Steam Cloud, save conflicts, achievements, and stats**<br>
-Prereq: `AD-SH-02`, `AD-NW-10`. Teach: Cloud API versus Auto-Cloud, user-unique paths, machine settings exclusion, multiple slots/migrations/conflict UI, server-owned progression boundary, stats/achievement definitions and unlock authority. Visual: local/server/cloud ownership and conflict flow. Check: choose merge/replace for scenarios and prevent achievement spoof effects; 90%. Build/Test/Artifact: Cloud strategy, conflict prototype, small achievement/stat set. Tests: offline conflict, old save, account/device change. Done: policy and smoke tests. Effort: 6-9 h + 12 h. Milestone: `AD-GATE-05`. Optional: `R-STEAMCLOUD`, `R-STEAMSTATS`.
-
-**AD-SH-04 - Store page, graphical assets, Coming Soon, and honest Early Access scope**<br>
-Prereq: `AD-SH-02`. Teach: current-state truth, no guaranteed future promises, playable-not-tech-demo requirement, Coming Soon timing, asset/screenshot/trailer integrity, EA questionnaire, known issues, save risks and price/scope boundaries. Visual: readiness evidence -> store claim trace. Check: critique misleading copy and map claims to playable evidence; 100% honesty items. Build/Test/Artifact: store-page draft, asset checklist, current/experimental/not-promised matrix, EA FAQ. Done: every claim evidenced. Effort: 6-9 h + 12 h. Milestone: `AD-GATE-05`. Optional: `R-STEAMEA`, `R-STEAMSTORE`.
-
-**AD-SH-05 - Patch, support, crash triage, save compatibility, and communication workflow**<br>
-Prereq: `AD-SH-03`, `AD-QA-04`. Teach: intake/severity/repro/fix/verify/promote, known issues, patch notes, support data minimization, moderation surface, emergency rollback, server/client protocol compatibility, save-break communication. Visual: incident-to-patch swimlane. Check: prioritize incidents and write accurate communication; 90%. Build/Test/Artifact: support runbook, templates, compatibility policy, escalation tree. Test: mock corrupt-save and server-crash incidents. Done: tabletop rehearsal. Effort: 5-8 h + 8 h. Milestone: `AD-GATE-05`. Optional: `R-STEAMEA`.
-
-**AD-SH-06 - Final Early Access gate and sustainable next-content plan**<br>
-Prereq: `AD-QA-05`, `AD-SH-04`, `AD-SH-05`. Teach: go/no-go synthesis, replayability now, dedicated server operations, accessibility/controller checks, 2/4/6/8 evidence, support capacity, honest uncertainty, data-first extension, rejection of engine scope creep. Visual: gate dependency and evidence dashboard. Check: evaluate a flawed candidate and justify no-go/go; 100% blockers. Build/Test/Artifact: final release dossier, rehearsal, first patch plan, post-launch risk register. Done: all Gate 05 criteria evidenced; no waiver for corruption, unplayability, deceptive store claims, or missing operations. Effort: 6-10 h + 12 h. Milestone: `AD-GATE-05`. Optional: `R-STEAMEA`.
-
-`AD-GATE-05` exit - Steam Early Access readiness:
-
-- The game is a replayable, stable game now, not a tech demo or funding promise.
-- Dedicated server build/deployment/versioning, Steam depot/branch rehearsal, Cloud/save conflict plan, stats/achievements smoke, auth/lobby/server join plan, crash/log/support workflow, and patch process exist.
-- Controller/remapping/accessibility settings work; 2/4/6/8 stress, worst-case combat/boss/UI profiles, long soak, sanitizer/test/package pipelines, reconnect and save migration are green.
-- The store page accurately describes current content, limits, experimental systems, save risks, and uncertainty; Coming Soon/review timing is planned from current Steam rules.
-
-## Cross-lesson assessments and source milestone mapping
-
-| Assessment | Required lessons | Knowledge evaluation | Project gate |
-|---|---|---|---|
-| Foundation architecture review | `AD-OR-*`, `AD-FD-*` | dependency map, ownership scenarios, CI diagnostic | Gate 00 |
-| Feel contract review | `AD-SM-*`, `AD-AN-*`, `AD-CB-01..05` | vector/timing/state simulator and design defense | Gate 01 |
-| Local vertical slice review | `AD-CB-*`, `AD-RP-*`, `AD-AI-*`, `AD-NW-01` | combat trace, schema validation, boss/loot/save scenarios | Gate 02 |
-| Two-player authority review | `AD-NW-01..05`, `07..12` | simulated packet traces, validation attacks, reconnect order | Gate 03 |
-| Eight-player systems review | `AD-NW-06`, `AD-AI-07`, `AD-UX-*`, `AD-QA-03` | interest-budget simulator, readability critique, role scenarios | Gate 04 |
-| Early Access readiness board | `AD-QA-*`, `AD-SH-*` | candidate evidence evaluation and honest-copy audit | Gate 05 |
-
-The original broad lessons map without omission: A -> `AD-FD-06..08`; B -> `AD-FD-01..05`; C -> `AD-PL-*`; D -> `AD-RN-*`; E -> `AD-DT-*`; F -> `AD-SM-*` and `AD-CB-01`; G -> `AD-AN-*`; H -> `AD-CB-*` and `AD-RP-*`; I -> `AD-AI-*`; J -> `AD-NW-*`; K -> `AD-UX-*` plus `AD-QA-03`; L -> `AD-QA-*` and `AD-SH-*`.
-
-## Explicit open game-design decisions
-
-This guide teaches how to decide; record the result in the project decision log. It does not invent these source-unspecified commitments:
-
-- exact team size, weekly capacity, non-PC targets, art direction, budget, and outsourcing;
-- keyboard-first versus controller-first tuning priority while both remain supported;
-- exact launch class/weapon/dungeon/act counts (recommendation: at least two contrasting classes and two main-weapon families before a paid release; Gate 02 remains one complete class);
-- friends-only, server browser, or automated matchmaking policy;
-- dedicated hosting vendor/cost model and long-term persistence service;
-- exact lock-range grace, join-in-progress/boss-lock, revive limits, difficulty ownership, respec price, swap cooldown, root-motion-per-move, and anti-cheat aggressiveness;
-- procedural maps, mods, seasons, monetization, crafting breadth, or MMO-persistent worlds;
-- final audio workflow beyond the free miniaudio baseline.
-
-## Optional free resource registry
-
-These resources are enrichment only. Use them when they clarify a lesson, and verify availability and license before relying on them. Paid books cited by source documents may be discussed in the bibliography but are not linked as learner requirements.
-
-| Key | Free resource |
-|---|---|
-| `R-CPPREF` / `R-CORE` | [cppreference](https://en.cppreference.com/) / [C++ Core Guidelines](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines) |
-| `R-CMAKE` / `R-CTEST` | [CMake Tutorial](https://cmake.org/cmake/help/latest/guide/tutorial/) / [CTest](https://cmake.org/cmake/help/latest/manual/ctest.1.html) |
-| `R-VCPKG` | [vcpkg CMake integration](https://learn.microsoft.com/en-us/vcpkg/users/buildsystems/cmake-integration) |
-| `R-PROGIT` / `R-GHLFS` | [Pro Git](https://git-scm.com/book/en/v2) / [Git LFS](https://git-lfs.com/) |
-| `R-ASAN` / `R-TSAN` / `R-LIBFUZZ` | [AddressSanitizer](https://clang.llvm.org/docs/AddressSanitizer.html), [ThreadSanitizer](https://clang.llvm.org/docs/ThreadSanitizer.html), [libFuzzer](https://llvm.org/docs/LibFuzzer.html) |
-| `R-GTEST` | [GoogleTest guide](https://google.github.io/googletest/) |
-| `R-GPP` / `R-DOD` | [Game Programming Patterns](https://gameprogrammingpatterns.com/) / [Data-Oriented Design](https://www.dataorienteddesign.com/dodbook/) |
-| `R-SDL` / `R-MINIAUDIO` | [SDL3 Wiki](https://wiki.libsdl.org/SDL3/) / [miniaudio manual](https://miniaud.io/docs/manual/) |
-| `R-BGFX` / `R-RENDERDOC` / `R-TRACY` | [bgfx](https://bkaradzic.github.io/bgfx/), [RenderDoc](https://renderdoc.org/), [Tracy](https://github.com/wolfpld/tracy) |
-| `R-GLTF` / `R-BLENDER` | [glTF 2.0 specification](https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html) / [Blender glTF exporter manual](https://docs.blender.org/manual/en/latest/addons/import_export/scene_gltf2.html) |
-| `R-ENTT` / `R-JSON` | [EnTT](https://github.com/skypjack/entt) / [JSON for Modern C++](https://github.com/nlohmann/json) |
-| `R-JOLT` / `R-OZZ` / `R-RECAST` | [Jolt Physics](https://jrouwe.github.io/JoltPhysics/), [ozz-animation](https://guillaumeblanc.github.io/ozz-animation/documentation/), [Recast Navigation](https://recastnav.com/) |
-| `R-IMGUI` / `R-RMLUI` | [Dear ImGui](https://github.com/ocornut/imgui/wiki/Getting-Started) / [RmlUi manual](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual.html) |
-| `R-GAFFER-TIME` / `R-GAFFER-NET` / `R-GAFFER-SNAPSHOT` | [Fix Your Timestep](https://gafferongames.com/post/fix_your_timestep/), [Networked Physics](https://gafferongames.com/categories/networked-physics/), [Snapshot Interpolation](https://gafferongames.com/post/snapshot_interpolation/) |
-| `R-GNS` | [GameNetworkingSockets](https://github.com/ValveSoftware/GameNetworkingSockets) |
-| `R-BT-SURVEY` / `R-GAIPRO` | [Behavior Tree survey](https://arxiv.org/abs/2005.05842) / [Game AI Pro free books](https://www.gameaipro.com/) |
-| `R-XAG` / `R-GAG` | [Xbox Accessibility Guidelines](https://learn.microsoft.com/en-us/gaming/accessibility/guidelines) / [Game Accessibility Guidelines](https://gameaccessibilityguidelines.com/) |
-| `R-CRASHPAD` / `R-OTEL` | [Crashpad](https://chromium.googlesource.com/crashpad/crashpad/) / [OpenTelemetry C++](https://opentelemetry.io/docs/languages/cpp/) |
-| `R-D2` | Guide-based historical/design summary; optional reference only to openly accessible official game manuals or public patch documentation after license/link review. |
-| `R-STEAMINPUT`, `R-STEAMLOBBY`, `R-STEAMAUTH`, `R-STEAMAC` | Official Steamworks docs for [Input](https://partner.steamgames.com/doc/features/steam_controller), [lobbies](https://partner.steamgames.com/doc/features/multiplayer/matchmaking), [auth](https://partner.steamgames.com/doc/features/auth), and [anti-cheat](https://partner.steamgames.com/doc/features/anticheat) |
-| `R-SPACEWAR`, `R-STEAMSERVER`, `R-STEAMUPLOAD` | Official [Spacewar](https://partner.steamgames.com/doc/sdk/api/example), [game server](https://partner.steamgames.com/doc/features/multiplayer/game_servers), and [upload](https://partner.steamgames.com/doc/sdk/uploading) docs |
-| `R-STEAMCLOUD`, `R-STEAMSTATS` | Official [Steam Cloud](https://partner.steamgames.com/doc/features/cloud) and [Stats/Achievements](https://partner.steamgames.com/doc/features/achievements) docs |
-| `R-STEAMEA`, `R-STEAMSTORE` | Official [Early Access](https://partner.steamgames.com/doc/store/earlyaccess) and [store presence](https://partner.steamgames.com/doc/store) docs |
-
----
 
 # Assessment, review, and graduation
 
@@ -3311,27 +2886,27 @@ Use several forms of assessment because no single quiz proves runtime engineerin
 | Playable demonstration | Verify integrated feel and user-visible behavior. |
 | Profile, packet, or capture review | Verify performance and networking claims with measurement. |
 | Migration/fault exercise | Verify durability under old, corrupt, interrupted, or hostile input. |
-| Gate dossier | Synthesize commit, tests, evidence, limitations, and go/no-go judgment. |
+| Checkpoint dossier | Synthesize commit, tests, evidence, limitations, and go/no-go judgment. |
 
-Default knowledge threshold is 80-90% as specified per lesson, with all critical combat-law, authority, security, economy, save-integrity, accessibility, and store-truth items required. Practice attempts are unlimited. A failed gate produces a remediation list and another evidence run; it does not produce a calendar-based pass.
+Every chapter checkpoint requires all critical combat-law, authority, security, economy, save-integrity, accessibility, and store-truth items to pass. A failed checkpoint produces a remediation list and another evidence run; it does not produce a calendar-based pass.
 
-## 18. Definition of done for a lesson
+## 18. Definition of done for a chapter checkpoint
 
-A lesson is complete only when:
+A chapter checkpoint is complete only when:
 
-- every prerequisite is complete;
+- every earlier chapter checkpoint is complete;
 - the learner can explain the visual/data-flow model without copying it;
-- the knowledge check meets its threshold;
-- the project artifact exists at the correct architecture boundary;
+- the named project artifact exists at the architecture boundary specified by the chapter's **Project connection**;
 - specified automated tests pass from the documented preset;
 - relevant manual and failure scenarios have been run;
 - instrumentation makes future diagnosis possible;
 - the decision and known limitations are recorded;
+- the checkpoint commit and evidence folder exist;
 - the main branch remains buildable.
 
 ## 19. Definition of done for the learning path
 
-The learning path is complete when all 89 lessons and Gates 00-05 are complete and the learner can independently:
+The learning path is complete when Chapters 0-16, checkpoint commits `checkpoint/00-toolchain` through `checkpoint/15-networked-game`, and all 12 vertical-slice increments are complete, and the learner can independently:
 
 1. reproduce and explain the full client/server/shared architecture;
 2. extend a data-driven class, weapon, enemy, encounter, item, or ability without bypassing validation or authority;
@@ -3374,9 +2949,3 @@ The consolidated sources intentionally do not choose these for you:
 - final audio authoring workflow beyond the miniaudio baseline.
 
 Record each resolved choice with context, constraints, chosen option, alternatives, consequences, review trigger, and date. None of these decisions may silently invalidate the canonical combat contract, authoritative networking model, owned/borrowed boundary, accessibility requirements, or gate evidence standard.
-
----
-
-## Consolidation note
-
-This guide was synthesized from the five PDFs in the repository's **docs/** directory. The authoritative guide and final addendum control corrections; the two roadmaps supply supporting sequence and estimates; the front-end specification contributes the clear, progressive, accessible study model but does not alter game curriculum. Duplicate prose, superseded network rates, overlapping milestones, and app-only presentation details were removed.
