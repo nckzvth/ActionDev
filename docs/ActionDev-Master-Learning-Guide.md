@@ -1,10 +1,16 @@
 # ActionDev Master Learning Guide
 
+This is a build-along plan, not a reading list. Chapters 0-16 are one dependency chain ending in a Steam-ready Early Access candidate. Every chapter begins with a **Project connection** that states what changes in the game repository and ends with evidence you must produce. Commit that evidence before continuing; later chapters assume it exists.
+
 ## 0. Install the complete development environment
 
 Complete this chapter before starting Modern C++. Use **Windows** if you have no platform preference; it is the most direct environment for the PC/Steam client. macOS is valid for most engine work but cannot replace final Windows and Linux packaging tests. Ubuntu is suitable for the headless server and Linux client work.
 
 Do not manually download every middleware library. Install the compiler, Git, CMake, Ninja, and vcpkg first. The project's `vcpkg.json` manifest will acquire most C/C++ dependencies reproducibly.
+
+> **Project connection — create the repository that every later chapter modifies.** The shipped game ultimately needs reproducible Windows client and Linux dedicated-server builds. This chapter creates that foundation now, before gameplay code can hide setup mistakes. By the end, the game repository must contain `CMakeLists.txt`, `CMakePresets.json`, `vcpkg.json`, `.gitignore`, `.gitattributes`, `client/`, `server/`, `shared/`, `tests/`, `tools/`, `assets/`, and `docs/`. The empty client, server, shared library, and test targets must configure, compile, run, and test from a clean terminal. Save the exact commands in `README.md` and commit the result as `checkpoint/00-toolchain`. Do not continue if the build relies on an IDE-only setting or a dependency installed outside the manifest.
+>
+> **If you are stuck:** first run one command at a time—configure, build, then test—and fix the first failure rather than changing several tools. Start with the [CMake tutorial](https://cmake.org/cmake/help/latest/guide/tutorial/), [CMake presets manual](https://cmake.org/cmake/help/latest/manual/cmake-presets.7.html), [vcpkg CMake integration](https://learn.microsoft.com/en-us/vcpkg/users/buildsystems/cmake-integration), and [Git book](https://git-scm.com/book/en/v2). The minimum proof is a fresh clone that succeeds with the documented preset.
 
 ### 0.1 Hardware and disk preparation
 
@@ -678,6 +684,12 @@ Update or reinstall the Command Line Tools and verify the active path with `xcod
 
 ## 1. Modern C++ and repository foundations
 
+> **Project connection — replace throwaway setup code with the reusable core every game system depends on.** Chapters 2-15 will create windows, GPU resources, physics bodies, sockets, entities, items, and saves; all of them require explicit lifetime, stable identity, typed failure, and isolated build targets. Build these foundations in the real repository now: `shared/include/actiondev/core/` for strong IDs, handles, results, and clocks; `shared/src/core/` for implementations; `tests/core/` for lifetime and invalid-handle tests; and target-local CMake files for `actiondev_shared`, `actiondev_client`, `actiondev_server`, `actiondev_tools`, and `actiondev_tests`. Add an ASan preset and make CTest run it.
+>
+> **What this unlocks:** Chapter 2 can own SDL resources without leaks; Chapter 3 can refer to assets/entities without raw pointers; Chapters 7, 13, and 15 can serialize persistent and network identities without confusing them with runtime handles. Before moving on, intentionally trigger and explain one compiler, linker, runtime-sanitizer, and stale-handle failure; prove move-only resources destroy exactly once; and commit as `checkpoint/01-core`.
+>
+> **Starter hint:** implement one `Handle<Domain>` containing an index plus generation, then write destroy/reuse tests before generalizing it. Prefer values and `std::unique_ptr`; introduce shared ownership only with a written owner graph. If lost, use [cppreference](https://en.cppreference.com/), the [C++ Core Guidelines](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines), the [CMake tutorial](https://cmake.org/cmake/help/latest/guide/tutorial/), [GoogleTest](https://google.github.io/googletest/), and [AddressSanitizer](https://clang.llvm.org/docs/AddressSanitizer.html) while doing this checkpoint—not later.
+
 ### The build pipeline you need to understand
 
 A C++ program is not compiled as one giant file. Each source file is preprocessed and compiled into an object file. The linker then combines object files and libraries into an executable. That distinction explains three common classes of failure:
@@ -794,6 +806,12 @@ Do not leave this chapter until ASan catches an intentional lifetime bug, CTest 
 
 ## 2. Platform shell, input, clocks, and the main loop
 
+> **Project connection — turn the empty executable into the first real client while preserving a headless server.** Add `client/platform/` for SDL initialization, window/events, device input, and client clocks; add `shared/input/` for device-independent `PlayerActions` and action bindings; add `shared/sim/FixedStep.hpp`; and keep `server/main.cpp` free of SDL, audio, and renderer dependencies. The client loop must pump events, sample actions, run zero or more fixed simulation ticks, and render an interpolated presentation. The server must run the same fixed tick headlessly.
+>
+> **What this unlocks:** every later player action becomes an input command rather than an SDL key; deterministic physics/combat in Chapters 4-7 receives a fixed tick; networking in Chapter 15 can sequence those commands; controller/UI work in Chapter 8 reuses the action map. Before continuing, prove focus loss clears holds, keyboard and gamepad produce the same action struct, an invalid config cannot replace the active config, the server runs 10,000 ticks, and scripted input ends in the same simulation state at 30/60/144 FPS. Commit as `checkpoint/02-platform-loop`.
+>
+> **Starter hint:** make the initial simulation only a position updated by `PlayerActions.move`; do not wait for physics or rendering. Log tick number, input sequence, and position. Use the [SDL3 examples](https://examples.libsdl.org/SDL3/), [SDL3 API reference](https://wiki.libsdl.org/SDL3/), and [Fix Your Timestep](https://gafferongames.com/post/fix_your_timestep/) beside the code. If a hold sticks, log raw transition, mapped action state, focus state, and sampled command separately.
+
 ### Lifecycle before features
 
 The platform shell owns initialization order, the event pump, top-level failure handling, and reverse-order shutdown. Put this behind a small boundary so the dedicated server never depends on a window.
@@ -895,6 +913,12 @@ Avoid per-frame log spam. Use counters, sampled traces, and on-demand overlays f
 
 ## 3. Rendering, assets, ECS, and data-driven content
 
+> **Project connection — give the simulation a visible, data-driven presentation without making the renderer authoritative.** Add `client/render/` for bgfx initialization, RAII resource owners, render passes, and extraction of a read-only `RenderScene`; add `shared/world/` for EnTT components/systems and deferred entity destruction; add `tools/asset_pipeline/` for GLB validation/conversion and a manifest; add `shared/content/` for parse/validate/link/freeze registries. Import one graybox player, enemy, arena, and missing-asset fallback through the pipeline. The server may depend on content definitions and ECS state but must not link bgfx or presentation assets.
+>
+> **What this unlocks:** Chapter 4 gets transforms and collision metadata, Chapter 5 gets skeleton/animation references, Chapters 6 and 14 author abilities/enemies as validated content, and Chapter 15 can replicate stable content IDs instead of implementation memory. Before continuing, prove invalid content cannot activate, a failed hot reload retains the prior registry, destroying entities in adversarial order leaves no stale relationships, RenderDoc can identify the graybox draw, and the headless server builds with no renderer dependency. Commit as `checkpoint/03-world-content-render`.
+>
+> **Starter hint:** render one hard-coded triangle, then one manifest-loaded GLB, then extract it from one ECS entity; do not build a material editor first. Start with the [bgfx examples](https://bkaradzic.github.io/bgfx/examples.html), [RenderDoc getting started](https://renderdoc.org/docs/getting_started/quick_start.html), [Blender glTF exporter guide](https://docs.blender.org/manual/en/latest/addons/import_export/scene_gltf2.html), [EnTT documentation](https://skypjack.github.io/entt/), and [JSON for Modern C++](https://json.nlohmann.me/). When a model looks wrong, inspect transform spaces and the captured draw before changing importer scale constants.
+
 ### Rendering is a consumer of game state
 
 The renderer should not own gameplay. Build a presentation extraction step that turns the current client-visible state into a render queue. This keeps the dedicated server free of renderer dependencies and prevents draw code from mutating combat state.
@@ -978,6 +1002,12 @@ Authoritative content changes require version agreement across server and client
 5. Attempt an invalid hot reload and prove that the live registry and active session remain unchanged.
 
 ## 4. Physics, locomotion, and gameplay queries
+
+> **Project connection — make authoritative movement and combat geometry real.** Add `shared/physics/` with a project-owned Jolt world and query facade; `shared/movement/CharacterMotor.*` with intent, fixed-tick resolution, grounded/slope/stair/ledge rules, and forced-motion composition; `shared/combat/SpatialQueries.*` for ray, sweep, and overlap contracts; plus `tests/movement/` and a `tools/traversal_map` or test-scene definition. The fixed tick created in Chapter 2 owns physics stepping. ECS transforms from Chapter 3 receive only the collision-resolved result; the renderer reads them afterward.
+>
+> **What this unlocks:** Chapter 5 can build dodge, block facing, melee traces, knockback, and target validity on one geometry contract; Chapter 14 can make nav steering request movement without teleporting; Chapter 15 can predict/reconcile the same motor. Before continuing, the character must traverse flat ground, ramps, stairs, ledges, corners, and narrow gaps at multiple render rates; query filters must exclude self/allies correctly; repeated attack IDs must not hit twice; and forced motion must stop or slide according to an explicit rule. Commit as `checkpoint/04-authoritative-movement`.
+>
+> **Starter hint:** begin with a capsule on a five-piece graybox traversal map and expose debug draw for contact normal, ground state, desired velocity, resolved displacement, and query shapes. Keep `IPhysicsQueries` small enough to fake in tests. Use the [Jolt samples/documentation](https://jrouwe.github.io/JoltPhysics/), [Jolt CharacterVirtual sample](https://github.com/jrouwe/JoltPhysics/tree/master/Samples/Tests/General), and [Fix Your Timestep](https://gafferongames.com/post/fix_your_timestep/). If movement differs by frame rate, find the variable delta that entered authoritative state.
 
 ### Physics is a service to gameplay rules
 
@@ -1064,6 +1094,12 @@ Target selection and hit validation are separate. A soft target may help choose 
 5. Trace the same enemy several times during one active window and prove damage is applied once unless the move explicitly supports multi-hit intervals.
 
 ## 5. Animation, targeting, combat state, and damage
+
+> **Project connection — turn the moving graybox into the first complete, testable action-combat loop.** Add `shared/combat/` for target selection, action timelines, attack IDs, block/dodge state, hit ledger, damage pipeline, tags, statuses, and typed results; add `client/animation/` for ozz sampling/graphs and presentation events; add combat definitions under `assets/gameplay/`. Implement exactly one player kit first: camera-relative movement, soft target plus tab lock, a three-hit holdable basic chain, held block, perfect-block window, guard break, and two independently recharging dodge charges. Animation presents authoritative phases; it does not decide whether damage happened.
+>
+> **What this unlocks:** Chapter 6 can express abilities/equipment as data over a proven action/effect contract; Chapter 14 lets enemies issue the same action commands; Chapter 15 replicates attack IDs and confirmed results. Before continuing, a headless test and slow-motion rendered trace must agree on startup/active/recovery ticks; each attack-target pair hits at most once; dodge/block boundary ticks are tested; target loss and interruption have explicit outcomes; and the damage breakdown explains every modifier. Commit as `checkpoint/05-combat-vertical`.
+>
+> **Starter hint:** use cubes/capsules and one animation clip if necessary. First make `RequestAction -> ActionStarted -> ActiveWindow -> HitQuery -> DamageApplied -> ActionEnded` visible in a timeline inspector, then add presentation polish. Use [ozz-animation documentation](https://guillaumeblanc.github.io/ozz-animation/documentation/), [Jolt queries](https://jrouwe.github.io/JoltPhysics/), [Game Programming Patterns: State](https://gameprogrammingpatterns.com/state.html), and [Dear ImGui getting started](https://github.com/ocornut/imgui/wiki/Getting-Started). When a hit feels wrong, inspect action tick, query shape, facing decision, defense state, and damage stages in that order.
 
 ### Animation presents state; gameplay authorizes state
 
@@ -1242,6 +1278,12 @@ For every status define source, duration, tick policy, stacking/refresh rule, ma
 
 ## 6. Abilities, progression, loot, navigation, and encounters
 
+> **Project connection — turn the hard-coded combat probe into a small replayable ARPG.** Extend `shared/abilities/` with immutable definitions, runtime instances, grants/loadouts, targeting policies, costs, cooldowns, and typed effects; add `shared/stats/`, `shared/items/`, `shared/progression/`, `shared/ai/`, and `shared/encounters/`; place validated definitions in `assets/gameplay/{abilities,items,enemies,encounters}/`. Build one complete class with a main weapon, borrowed sub-weapon skills, basic tree choices, item bases/affixes, three enemy roles, and one boss encounter. All of them must reuse Chapter 5's action, damage, tag, and status contracts.
+>
+> **What this unlocks:** Chapter 7 can assign authority and durable ownership to real gameplay transactions; Chapter 8 can display real party/combat/inventory state; Chapters 12-14 later harden the exact cross-system contracts. Before continuing, data validation must reject broken references and tag rules; loadout/equipment changes must rebuild derived stats deterministically; loot generated with a captured seed must reproduce; AI must request ordinary abilities rather than applying damage directly; and encounter reset/completion must be idempotent. Commit as `checkpoint/06-arpg-systems`.
+>
+> **Starter hint:** build one thin end-to-end path before breadth: one ability definition creates one effect, one enemy uses it, one boss grants one item, and equipping that item changes one stat. Only then add categories. Use [JSON for Modern C++](https://json.nlohmann.me/), [Game Programming Patterns](https://gameprogrammingpatterns.com/), [Recast Navigation](https://recastnav.com/), the free [Game AI Pro books](https://www.gameaipro.com/), and the [behavior-tree survey](https://arxiv.org/abs/2005.05842). If systems disagree, print stable definition ID, runtime instance ID, owner, source, target, operation ID, and tick at each boundary.
+
 ### Ability architecture
 
 An ability definition describes requirements and effects; the authoritative executor owns state changes. Keep these concerns separate:
@@ -1359,6 +1401,12 @@ Scale from one to eight players using authored policies, not only multiplied hea
 6. Build three enemies and one boss using the same ability/combat contracts as the player. Verify no AI action bypasses validation.
 
 ## 7. Dedicated networking, authority, and persistence
+
+> **Project connection — move the Chapter 6 ARPG behind a real dedicated-server authority boundary.** Create `server/session/`, `server/simulation/`, and `server/persistence/`; create `shared/net/protocol/` with explicit versioned messages and limits; create `client/net/` with command history, prediction, reconciliation, interpolation, and reconnect state. The server loads character state, owns the ECS/physics/combat/AI/loot truth, validates commands, commits durable changes, and emits replication views. The client sends intent and presents predicted/confirmed results; it never authors health, item, XP, cooldown, or encounter truth.
+>
+> **What this unlocks:** Chapter 8 can build party UX and accessibility against honest distributed state; Chapter 9 can test, package, observe, and release the actual topology; Chapter 15 later completes per-system replication. Before continuing, two separate clients must finish the graybox slice through a localhost dedicated server under simulated latency/jitter/loss; reconnect must restore a coherent baseline; duplicate pickup/save requests must be harmless; malformed/oversized messages must be rejected; and an old/corrupt save fixture must fail or migrate without partial mutation. Commit as `checkpoint/07-two-player-authority`.
+>
+> **Starter hint:** network only movement first, then action start/result, then owner-only inventory. Put a sequence, server tick, protocol version, and bounded length on messages before adding payload breadth. Use [GameNetworkingSockets](https://github.com/ValveSoftware/GameNetworkingSockets), [Gaffer on Games: Networked Physics](https://gafferongames.com/categories/networked-physics/), [Snapshot Interpolation](https://gafferongames.com/post/snapshot_interpolation/), and [libFuzzer](https://llvm.org/docs/LibFuzzer.html). When desync appears, compare command sequence, simulated tick, state checksum, acknowledgment, and correction—not rendered position.
 
 ### Start with one truth
 
@@ -1517,6 +1565,12 @@ During patch rollout, server/client version skew must be deliberate. Steam branc
 
 ## 8. Party UX, readability, accessibility, and performance
 
+> **Project connection — make the authoritative multiplayer slice understandable and usable by one to eight real players.** Add `client/ui/` with an RmlUi data facade for party roster, player status, target, abilities, resources, combat results, inventory, settings, reconnect, and errors; keep `client/debug/` in Dear ImGui. Add scalable UI, complete controller navigation/remapping/glyphs, reduced-effects and readability settings, non-color cues, party pings, ally frames, downed/revive flow, and effect/telegraph priority. UI reads replicated/presentation models and sends commands; it never mutates authoritative gameplay directly.
+>
+> **What this unlocks:** Chapter 9 can run accessibility, soak, performance, and release acceptance on a user-facing build rather than a debug prototype; the final Steam build has controller-complete menus and truthful failure states. Before continuing, 1/2/4/6/8-player scenarios must keep lethal telegraphs, local feedback, target state, and party emergencies legible; every required flow must work without a mouse; text/UI scale must not clip; network rejection/reconnect errors must be actionable; and measured client frame, server tick, nav/AI, memory, and bandwidth budgets must be recorded. Commit as `checkpoint/08-player-experience`.
+>
+> **Starter hint:** implement a read-only `UiModel` snapshot and explicit `UiCommand` queue before styling screens. Test at 1280x720 and high scale early. Use the [RmlUi C++ manual](https://mikke89.github.io/RmlUiDoc/pages/cpp_manual.html), [Steam Input documentation](https://partner.steamgames.com/doc/features/steam_controller), [Xbox Accessibility Guidelines](https://learn.microsoft.com/en-us/gaming/accessibility/guidelines), and [Game Accessibility Guidelines](https://gameaccessibilityguidelines.com/). When eight-player combat becomes unreadable, rank effects by gameplay consequence and ownership before reducing everything equally.
+
 ### Production UI versus developer UI
 
 Use RmlUi for player-facing menus and HUD and Dear ImGui for internal inspection. They solve different problems.
@@ -1622,6 +1676,12 @@ Fix measured bottlenecks. Do not pre-emptively replace clear code with complex o
 
 ## 9. Testing, observability, Steam, and Early Access operations
 
+> **Project connection — convert the playable build into a supportable release candidate.** Expand `tests/` into unit, deterministic simulation, protocol/parser, migration, integration, multi-client, load, soak, and packaging lanes; add `shared/telemetry/` plus client/server crash context; add `platform/steam/` behind an adapter; create client/server packaging scripts, depots/branches documentation, compatibility policy, rollback runbook, support template, privacy statement, known-issues list, and store-claim evidence under `docs/release/`. Release promotion must use the same tested artifacts, not an IDE rebuild.
+>
+> **What this unlocks:** Chapters 10-16 provide the final system-by-system integration audit and ordered vertical-slice gates; after those pass, this chapter's pipeline is what actually ships and patches the game. Before moving on, CI must build supported client/server targets, run sanitizer and migration fixtures, fuzz parsers, package staged installs, and retain symbols; a two-hour multi-client soak must stay within documented budgets; a crash must be diagnosable from build ID/logs/symbols; patch and rollback rehearsals must succeed; and every public Steam/Early Access claim must map to a tested current capability. Commit as `checkpoint/09-release-pipeline`.
+>
+> **Starter hint:** treat build ID, protocol version, content hash, and save version as one compatibility record printed at startup and included in every crash report. Start with [CTest](https://cmake.org/cmake/help/latest/manual/ctest.1.html), [AddressSanitizer](https://clang.llvm.org/docs/AddressSanitizer.html), [ThreadSanitizer](https://clang.llvm.org/docs/ThreadSanitizer.html), [Tracy](https://github.com/wolfpld/tracy), [RenderDoc](https://renderdoc.org/), [Crashpad](https://chromium.googlesource.com/crashpad/crashpad/), [SteamPipe/uploading](https://partner.steamgames.com/doc/sdk/uploading), and [Steam Early Access rules](https://partner.steamgames.com/doc/store/earlyaccess). If a test is flaky, capture seed, tick, network-fault preset, build ID, and artifact before rerunning.
+
 ### Test in layers
 
 Use the cheapest layer that can prove the rule:
@@ -1705,6 +1765,12 @@ Operational readiness includes:
 7. Tabletop a corrupt save, server crash during reward commit, incompatible client patch, and emergency rollback.
 
 ## 10. Assemble the runtime as one system
+
+> **Project connection — audit the repository before adding more features.** Produce `docs/architecture/target-graph.md`, `composition-roots.md`, `server-tick.md`, `entity-lifecycle.md`, and `ownership-matrix.md` from the real code. Refactor until the CMake dependency graph, service construction/destruction, tick phases, commands/events, and entity teardown match those documents. Add a headless integration test that boots the composition root, runs a scripted player/enemy/action flow, destroys the entities, and shuts down with no leaked services or stale handles.
+>
+> **Required exit evidence:** the server target has no client/presentation dependency; client and server share domain rules without sharing platform ownership; every mutable system has one owner and tick phase; every cross-system request/result is traceable; and startup failure unwinds safely. Commit the diagrams plus test as `checkpoint/10-runtime-assembly`. This checkpoint prevents Chapters 11-15 from creating circular dependencies that make the game impossible to network, test, or patch.
+>
+> **If stuck:** begin at `main()` for client and server, draw every constructed service and arrow, then trace one tick and one entity from spawn through destruction. Delete arrows you cannot justify. Use [Game Programming Patterns](https://gameprogrammingpatterns.com/), the free [Data-Oriented Design book](https://www.dataorienteddesign.com/dodbook/), [CMake target guidance](https://cmake.org/cmake/help/latest/guide/tutorial/), and [Tracy](https://github.com/wolfpld/tracy) to confirm dependency and execution boundaries.
 
 This chapter connects the earlier subjects into one permanent architecture. The goal is not to create every feature at once. The goal is to establish dependency direction, ownership, update order, and data flow so later systems can be added without bypassing authority or creating circular coupling.
 
@@ -1914,6 +1980,12 @@ Build:
 
 ## 11. Integrate the playable character and combat loop
 
+> **Project connection — prove that input, movement, animation, targeting, combat, networking, and presentation form one vertical path.** Build one `PlayerCharacter` slice across the existing targets rather than a new monolithic class: command producer in the client, validated action/movement state in shared/server code, Jolt motor, target service, action timeline, damage/defense state, replicated result, ozz presentation, and UI/debug view. Add `tests/integration/player_combat_slice.*` plus a recorded script that walks, targets, attacks three times, blocks, perfect-blocks, dodges twice, takes damage, loses a target, and recovers from interruption.
+>
+> **Required exit evidence:** every state change has a named owner; rendered animation cannot create a hit; physics cannot bypass action rules; the client cannot author damage; and the same command script produces the same authoritative event sequence headlessly and with rendering enabled. Prove the sequence locally and through a dedicated server, then commit as `checkpoint/11-player-combat`. Chapter 12 may only extend this path through definitions/effects—it may not create a second combat pipeline.
+>
+> **If stuck:** hard-code one ability ID and one target until the event chain works, then re-enable data selection and target ranking. Inspect the timeline `command -> validation -> action phase -> query -> defense -> damage -> event -> replication -> presentation`. Use [Jolt Physics](https://jrouwe.github.io/JoltPhysics/), [ozz-animation](https://guillaumeblanc.github.io/ozz-animation/documentation/), [Dear ImGui](https://github.com/ocornut/imgui/wiki/Getting-Started), and [Gaffer on fixed timesteps](https://gafferongames.com/post/fix_your_timestep/).
+
 ### 11.1 Character aggregate and ECS representation
 
 A playable character is not one class containing every subsystem. It is a set of components plus domain services that enforce cross-component invariants.
@@ -2071,6 +2143,12 @@ Exit test: two processes exchange commands/snapshots; both see the same movement
 
 ## 12. Build abilities, effects, stats, and equipment as connected systems
 
+> **Project connection — make the Chapter 11 combat path extensible enough to author a real class and gear build without code forks.** Add validated definition files and runtime repositories for abilities, effects, stats, equipment, grants, loadouts, and tags. Build one class package with a basic chain, two main-weapon skills, two borrowed sub-weapon skills, four class skills, one core skill, passives, resource rules, and at least six items that change the build through the same effect/stat pipeline. Add a loadout inspector that shows the source of every grant and stat modifier.
+>
+> **Required exit evidence:** equipping/unequipping produces the same derived result after save/load; invalid loadouts fail before mutation; ability cost/cooldown/effects commit atomically; tags block illegal combinations; removing a source revokes only its grants; and combat still uses the single Chapter 11 action/damage flow. Commit definitions, schema validators, tests, and a playable build demonstration as `checkpoint/12-buildcraft`. This is the content architecture required to add classes and items after launch without rewriting combat.
+>
+> **If stuck:** implement a single `AbilityDefinition -> AbilityRuntime -> EffectSpec -> StatModifier` path with one additive stat before supporting every modifier kind. Print modifier source IDs and evaluation order. Use [JSON for Modern C++](https://json.nlohmann.me/), [C++ Core Guidelines](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines), and [Game Programming Patterns](https://gameprogrammingpatterns.com/) while implementing the first data-driven ability.
+
 ### 12.1 Why these systems must share contracts
 
 Abilities request actions and effects. Effects change stats, resources, statuses, movement, or spawned entities. Equipment and progression grant or modify abilities/stats. UI displays the resulting loadout and state. Networking validates requests and replicates results. Persistence stores durable grants, item instances, and build choices.
@@ -2218,6 +2296,12 @@ Build:
 
 ## 13. Connect loot, inventory, progression, and persistence
 
+> **Project connection — make combat produce durable, player-owned progression without duplication or corruption.** Add persistent item IDs, deterministic loot generation, personal ownership, pickup operations, revisioned inventory/equipment commands, XP/level/tree transactions, a versioned save envelope, migrations, atomic write/replace/recovery, and a repository interface usable by the server. Wire the Chapter 12 equipment/stat rebuild into load and inventory commits; do not serialize derived stats as independent truth.
+>
+> **Required exit evidence:** boss death creates one reward operation; two players receive distinct authorized loot views; repeated/stale pickup and inventory requests are harmless; every item exists in exactly one location; crash/disconnect injection around reward and save boundaries loses or duplicates nothing; corrupt saves do not partially load; and at least two older save fixtures migrate. Complete a kill-loot-equip-level-save-restart-load loop through the dedicated server and commit as `checkpoint/13-durable-progression`.
+>
+> **If stuck:** start with an in-memory `PersistenceRepository` and operation IDs, then add files/database behind the same interface. Test exactly-one-location as an invariant after every command. Use [JSON for Modern C++](https://json.nlohmann.me/), [GoogleTest](https://google.github.io/googletest/), [C++ filesystem](https://en.cppreference.com/w/cpp/filesystem), and [Steam Cloud documentation](https://partner.steamgames.com/doc/features/cloud). Treat power loss between temp-file write and rename as a normal test case.
+
 ### 13.1 The durable ownership chain
 
 Loot is not a visual pickup. It is a server-created durable transaction that crosses encounter, reward, item generation, inventory, replication, UI, and persistence systems.
@@ -2360,6 +2444,12 @@ Build:
 8. Disconnect/crash injection at every reward/pickup commit boundary.
 
 ## 14. Connect navigation, AI, encounters, and player combat
+
+> **Project connection — turn the player/buildcraft slice into a replayable encounter using the same rules.** Build a navmesh tool/runtime adapter, perception/memory, deterministic threat policy, behavior actions that emit shared commands, a melee pursuer, ranged controller, support enemy, and a multi-phase boss encounter with reset and personal reward completion. Add AI/threat/nav/encounter inspectors and a headless encounter test. Enemies may choose targets and abilities, but only the shared Chapter 11-12 executors move, spend resources, apply effects, deal damage, or die.
+>
+> **Required exit evidence:** all four archetypes use ordinary validated abilities; navigation never writes final transforms; threat handles death/taunt/healing/ties deterministically; encounter reset removes hazards, entities, memory, and old attempt IDs; boss completion and rewards happen once; and 1/2/4/8 participant variants remain within AI/nav budgets. Run the encounter from start through wipe/reset and successful reward, then commit as `checkpoint/14-encounter`.
+>
+> **If stuck:** first make one melee enemy alternate `AcquireTarget -> MoveCommand -> AbilityCommand -> WaitForResult`; add navmesh and richer behavior only after that loop is testable. Use [Recast Navigation](https://recastnav.com/), the free [Game AI Pro books](https://www.gameaipro.com/), the [behavior-tree survey](https://arxiv.org/abs/2005.05842), [Jolt Physics](https://jrouwe.github.io/JoltPhysics/), and [Tracy](https://github.com/wolfpld/tracy). Expose rejection reasons rather than silently retrying actions.
 
 ### 14.1 AI is another command producer
 
@@ -2518,6 +2608,12 @@ Build:
 
 ## 15. Replicate each game system deliberately
 
+> **Project connection — make the complete Chapter 14 encounter correct for remote players, late join, and reconnect.** Define explicit protocol schemas and per-client replication views for spawn/despawn, movement, action/combat, abilities/resources, enemies/encounter, party/revive, loot, inventory/equipment, progression, and baselines. Add network IDs/generations, content/build negotiation, prediction history, interpolation, interest reasons, bandwidth counters, owner-only privacy, and reconnect reconstruction. Never serialize raw ECS/component memory.
+>
+> **Required exit evidence:** two remote clients and a bot/load harness can complete the full encounter under latency/jitter/loss/reordering/duplication; local movement corrections stay bounded; attack IDs bind prediction to authoritative results; critical telegraphs and party state arrive with correct priority; private inventory/progression never reaches another client; late join/reconnect rebuilds coherent state during combat, downed state, boss phase, ground loot, and persistence commits. Commit packet schemas, fault presets, traces, and results as `checkpoint/15-networked-game`.
+>
+> **If stuck:** replicate one domain at a time in this order: handshake, spawn, movement, action start/result, party/encounter, then owner-only durable state. Log message type, byte count, sequence, tick, entity generation, relevance reason, and reliability. Use [GameNetworkingSockets](https://github.com/ValveSoftware/GameNetworkingSockets), [Gaffer on Networked Physics](https://gafferongames.com/categories/networked-physics/), [Snapshot Interpolation](https://gafferongames.com/post/snapshot_interpolation/), and [libFuzzer](https://llvm.org/docs/LibFuzzer.html).
+
 ### 15.1 Replication is a view, not serialization of the ECS
 
 Do not dump entity/component memory into packets. Build a per-client replication view from finalized authoritative state. The view decides relevance, field ownership, frequency, quantization, baseline/delta behavior, and privacy.
@@ -2627,6 +2723,10 @@ Build:
 
 This sequence turns the isolated systems into a playable game while keeping every increment testable. Do not start a later increment until the earlier one has a repeatable demonstration and automated checks.
 
+> **Project connection — this is the release-producing schedule.** Create one issue/milestone and one evidence folder `docs/gates/increment-01` through `increment-12` for each increment below. Every folder must contain the commit SHA, exact build/test commands, automated results, playable scenario, captures/metrics, known limitations, and go/no-go decision. An increment is not complete because its code exists; it is complete only when its **Prove** line is repeatable from a clean build. The result of Increment 12 is the artifact uploaded for Early Access review, not another prototype branch.
+>
+> **If you are unsure what to do next:** work only on the first incomplete increment, choose its smallest failing proof, and trace backward to the chapter checkpoint that owns the missing contract. Do not start more content to avoid a broken foundation. The help links repeated under each increment are intentionally local so they are available at the moment of implementation.
+
 ### Increment 1 - Reproducible runtime shell
 
 Build: client/server/shared/tests targets, config, logs, fixed clocks, empty server tick, SDL window/input, CI, sanitizers.
@@ -2634,6 +2734,8 @@ Build: client/server/shared/tests targets, config, logs, fixed clocks, empty ser
 Learn: build/link pipeline, RAII, CMake targets, lifecycle, fixed timestep, test structure.
 
 Prove: clean clone builds; server runs 10,000 ticks; client opens/closes repeatedly; debugger and sanitizer work.
+
+Help at this step: [CMake tutorial](https://cmake.org/cmake/help/latest/guide/tutorial/), [vcpkg integration](https://learn.microsoft.com/en-us/vcpkg/users/buildsystems/cmake-integration), [SDL3 examples](https://examples.libsdl.org/SDL3/), and [AddressSanitizer](https://clang.llvm.org/docs/AddressSanitizer.html). First hint: reduce the shell to one client target, one server target, and one shared test if the graph will not configure.
 
 ### Increment 2 - Authoritative movement playground
 
@@ -2643,6 +2745,8 @@ Learn: vectors/transforms, collision queries, fixed-step movement, network time/
 
 Prove: same scripted input across render rates; two clients under latency/loss; bounded correction; no wall/stair/ledge blockers.
 
+Help at this step: [Jolt Physics](https://jrouwe.github.io/JoltPhysics/), [Fix Your Timestep](https://gafferongames.com/post/fix_your_timestep/), and [Networked Physics](https://gafferongames.com/categories/networked-physics/). First hint: prove a headless capsule motor from recorded inputs before adding prediction or animation.
+
 ### Increment 3 - Presentation and content foundation
 
 Build: bgfx scene extraction/render passes, camera, graybox assets, glTF pipeline, EnTT world, content parse/validate/link/freeze, ImGui inspectors.
@@ -2650,6 +2754,8 @@ Build: bgfx scene extraction/render passes, camera, graybox assets, glTF pipelin
 Learn: coordinate spaces, GPU resource lifetime, asset manifests, ECS boundaries, schemas/stable IDs.
 
 Prove: headless server has no renderer dependency; invalid content cannot activate; missing presentation asset has a visible fallback.
+
+Help at this step: [bgfx examples](https://bkaradzic.github.io/bgfx/examples.html), [RenderDoc quick start](https://renderdoc.org/docs/getting_started/quick_start.html), [Blender glTF export](https://docs.blender.org/manual/en/latest/addons/import_export/scene_gltf2.html), and [EnTT](https://skypjack.github.io/entt/). First hint: ship a lit graybox and a failing content fixture before any art polish.
 
 ### Increment 4 - Combat feel probe
 
@@ -2659,6 +2765,8 @@ Learn: state machines, animation/gameplay timing, targeting ranking, query shape
 
 Prove: slow-motion timeline and headless tests agree; canonical combat rules pass at boundaries; remote process sees the same authoritative result.
 
+Help at this step: [ozz-animation](https://guillaumeblanc.github.io/ozz-animation/documentation/), [Jolt queries](https://jrouwe.github.io/JoltPhysics/), and [Dear ImGui](https://github.com/ocornut/imgui/wiki/Getting-Started). First hint: visualize every action phase and hit shape; do not tune by animation appearance alone.
+
 ### Increment 5 - Ability and buildcraft package
 
 Build: definitions, grants/loadout, ability transaction, typed effects, statuses/tags, stat aggregation, main/sub weapon equipment, one complete class kit.
@@ -2666,6 +2774,8 @@ Build: definitions, grants/loadout, ability transaction, typed effects, statuses
 Learn: immutable definitions/runtime instances, modifiers, transactions, effect composition, data validation.
 
 Prove: every slot category validates; equipment changes derived state deterministically; save/load preserves sources and recomputes derived values.
+
+Help at this step: [JSON for Modern C++](https://json.nlohmann.me/), [Game Programming Patterns](https://gameprogrammingpatterns.com/), and [C++ Core Guidelines](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines). First hint: finish one ability/effect/stat/item chain before building a general editor or a second class.
 
 ### Increment 6 - Enemy and encounter package
 
@@ -2675,6 +2785,8 @@ Learn: navigation, spatial reasoning, decision/action separation, orchestration,
 
 Prove: enemies use shared abilities/combat; reset leaves no stale entities/hazards; boss completion/reward occurs once.
 
+Help at this step: [Recast Navigation](https://recastnav.com/), [Game AI Pro](https://www.gameaipro.com/), and the [behavior-tree survey](https://arxiv.org/abs/2005.05842). First hint: make an enemy emit the same move/ability commands as a player before introducing a behavior-tree framework.
+
 ### Increment 7 - Loot, inventory, progression, and save
 
 Build: loot tables, item instances/affixes, personal pickup, inventory/equipment transactions, XP/level/tree, atomic/versioned save, migrations.
@@ -2682,6 +2794,8 @@ Build: loot tables, item instances/affixes, personal pickup, inventory/equipment
 Learn: RNG testing, persistent identity, idempotency, optimistic revisions, transactional durability, schema evolution.
 
 Prove: two-player separate loot; duplicate pickup harmless; crash/disconnect recovery; old/corrupt save fixtures handled safely.
+
+Help at this step: [C++ filesystem](https://en.cppreference.com/w/cpp/filesystem), [GoogleTest](https://google.github.io/googletest/), and [Steam Cloud](https://partner.steamgames.com/doc/features/cloud). First hint: assign every durable operation and item a stable ID, then test retries before adding storage complexity.
 
 ### Increment 8 - Complete localhost vertical slice
 
@@ -2691,6 +2805,8 @@ Learn: vertical integration, user flow, pacing, failure triage, evidence collect
 
 Prove: all gameplay runs through localhost dedicated server; Gate 02 dossier complete; no client-only alternate rules.
 
+Help at this step: return to the Chapter 10 ownership matrix and Chapter 11 command-to-hit trace. First hint: remove every client-only gameplay shortcut, then run the complete 10-15 minute flow from a clean character and save the trace as gate evidence.
+
 ### Increment 9 - Two-player authority proof
 
 Build: party/session flow, two remote clients, revive, reconnect, interest management, owner-only state, network simulation presets.
@@ -2698,6 +2814,8 @@ Build: party/session flow, two remote clients, revive, reconnect, interest manag
 Learn: distributed state, eventual arrival, jitter buffers, replication priority, session lifecycle, security validation.
 
 Prove: repeated slice under latency/jitter/loss; no item/progression corruption; traces explain every correction/rejection.
+
+Help at this step: [GameNetworkingSockets](https://github.com/ValveSoftware/GameNetworkingSockets), [Networked Physics](https://gafferongames.com/categories/networked-physics/), and [Snapshot Interpolation](https://gafferongames.com/post/snapshot_interpolation/). First hint: use one named fault preset and one deterministic scenario until every mismatch has a command/tick trace.
 
 ### Increment 10 - Eight-player readability and budgets
 
@@ -2707,6 +2825,8 @@ Learn: performance profiling, bandwidth accounting, information hierarchy, acces
 
 Prove: critical telegraphs/party state survive worst case; tick/frame/bandwidth/memory remain within documented budgets; two-hour soak.
 
+Help at this step: [Tracy](https://github.com/wolfpld/tracy), [Xbox Accessibility Guidelines](https://learn.microsoft.com/en-us/gaming/accessibility/guidelines), and [Game Accessibility Guidelines](https://gameaccessibilityguidelines.com/). First hint: classify effects and UI by consequence before optimizing; measure worst-case server tick and packet bytes by system.
+
 ### Increment 11 - Steam packaging and operations
 
 Build: Steam adapter, identity/lobby/server registration plan, client/server depots, private branches, Cloud/conflict policy, stats/achievements, crash/support workflow.
@@ -2715,6 +2835,8 @@ Learn: platform boundaries, artifact promotion, compatibility, support and relea
 
 Prove: clean staged install boots client/server and joins; symbols/logs triage a crash; patch/rollback rehearsal works.
 
+Help at this step: [Steamworks Spacewar](https://partner.steamgames.com/doc/sdk/api/example), [game servers](https://partner.steamgames.com/doc/features/multiplayer/game_servers), [SteamPipe uploading](https://partner.steamgames.com/doc/sdk/uploading), and [Crashpad](https://chromium.googlesource.com/crashpad/crashpad/). First hint: promote one immutable build artifact through a private branch instead of rebuilding for each environment.
+
 ### Increment 12 - Early Access candidate
 
 Build: replayable current content, final migrations, compatibility matrix, store/FAQ/current-state copy, known issues, first patch plan.
@@ -2722,6 +2844,8 @@ Build: replayable current content, final migrations, compatibility matrix, store
 Learn: release judgment, evidence-based scope, honest communication, sustainable operations.
 
 Prove: Gate 05 passes without waiving corruption, accessibility, packaging, support, or store-truth blockers.
+
+Help at this step: [Steam Early Access rules](https://partner.steamgames.com/doc/store/earlyaccess), [store presence documentation](https://partner.steamgames.com/doc/store), and [Steam stats/achievements](https://partner.steamgames.com/doc/features/achievements). First hint: map each store claim to a current-build test/capture and remove any claim that depends on future work.
 
 ### 16.1 Integration review checklist
 
@@ -2764,6 +2888,8 @@ For each lesson, also write one correct example, one incorrect/debug example, a 
 
 ## Stage 0 - Orientation and foundations
 
+> **Stage-to-project connection:** this stage ends at `checkpoint/01-core`, not at a quiz. The repository must build client/server/shared/tools/tests from presets; strong IDs, RAII owners, typed results, tests, CI, sanitizer, Git/LFS policy, and runtime scope must exist. These are the contracts every later SDL, bgfx, Jolt, socket, entity, item, and save implementation consumes. If the gate fails, return to Chapters 0-1 and use the CMake, vcpkg, cppreference, Core Guidelines, GoogleTest, and sanitizer links provided there before starting platform code.
+
 ### Module AD-OR - Mission and architecture boundary
 
 **AD-OR-01 - The ActionDev learning contract**<br>
@@ -2801,6 +2927,8 @@ Prereq: `AD-FD-07`. Teach: unit/integration/smoke distinctions, CTest/GoogleTest
 `AD-GATE-00` exit: a fresh clone builds client/server/shared/tests from documented presets; dependencies are pinned; CI, formatter, static analysis, unit test, and at least one sanitizer lane work; Git/LFS rules and runtime scope exist. Estimated source-block total remains within Lesson A-B’s broad 200-300 hour learning range when exercises and independent practice are included.
 
 ## Stage 1 - Platform, rendering, ECS, and content
+
+> **Stage-to-project connection:** this stage turns the skeleton into `checkpoint/03-world-content-render`: a headless fixed-tick server, SDL client/action map, bgfx graybox renderer, GLB pipeline, EnTT world, immutable content registries, and failure/debug views. It must visibly render data owned by simulation without giving presentation authority. The gate is a clean server/client build plus a graybox scene whose invalid content and missing assets fail predictably. Use the SDL, bgfx, RenderDoc, glTF/Blender, EnTT, JSON, and fixed-timestep links embedded in Chapters 2-3 while building each target.
 
 ### Module AD-PL - SDL3 platform shell
 
@@ -2848,6 +2976,8 @@ Prereq: `AD-DT-03`. Teach: safe presentation reload, unsafe authoritative mutati
 Prereq: `AD-DT-04`. Teach: model/texture/shader/animation/nav/data/localization build steps, dependency hashes, generated versus source artifacts, CI cache, manifest, human-readable errors, stable string keys. Visual: asset DAG and CI outputs. Check: order pipeline, detect stale generated content, localization-key scenarios; 85%. Build/Test/Artifact: content-build target and manifest with validation hooks; placeholder locale bundle. Tests: clean/incremental build and missing localization key. Done: reproducible pipeline evidence. Effort: 7-10 h + 10 h. Milestone: `AD-GATE-01`. Optional: `R-CMAKE`, `R-GLTF`.
 
 ## Stage 2 - Simulation, movement, animation, and combat
+
+> **Stage-to-project connection:** this stage ends at `checkpoint/05-combat-vertical`: the authoritative capsule motor, traversal/query layer, animation presentation, targeting, action timeline, three-hit chain, block/perfect-block/guard-break, dodge charges, damage pipeline, tags, and statuses must work as one traceable command-to-result path. This path becomes the only combat route used by abilities, AI, and networking. Gate evidence is a matching headless and rendered trace with boundary tests. Use Jolt, ozz, ImGui, fixed-timestep, and accessibility links directly beside the relevant lesson.
 
 ### Module AD-SM - Fixed-step simulation and Jolt gameplay queries
 
@@ -2916,6 +3046,8 @@ Prereq: `AD-CB-09`, `AD-RN-04`. Teach: HUD/world target indicators, telegraphs, 
 
 ## Stage 3 - Skills, hybrid progression, loot, and persistence
 
+> **Stage-to-project connection:** this stage turns hard-coded combat into `checkpoint/13-durable-progression`: one complete data-driven class/build package, main/sub weapons, effects/stats, skill tree, item/affix/loot rules, personal ownership, inventory/equipment commands, XP, versioned saves, migrations, and retry-safe transactions. The playable proof is kill -> loot -> equip -> allocate -> save -> restart -> load with identical derived state and no duplicate item. Use JSON, GoogleTest, filesystem, Steam Cloud, and the Chapter 12-13 starter hints at the moment a schema or transaction blocks you.
+
 ### Module AD-RP - Ability architecture and Diablo II-inspired buildcraft
 
 **AD-RP-01 - Generic ability definition and execution pipeline**<br>
@@ -2953,6 +3085,8 @@ Prereq: `AD-RP-07`, `AD-RP-10`. Teach: XP/level/point cadence, rarity/affix paci
 
 ## Stage 4 - Navigation, AI, and encounters
 
+> **Stage-to-project connection:** this stage ends at `checkpoint/14-encounter`: a navmesh/query tool, perception, threat, shared-command behavior, melee/ranged/support enemies, and one boss encounter with wipe/reset/reward must reuse the player movement/ability/combat path. The gate is a complete headless and rendered encounter, including reset and 1/2/4/8 scaling evidence. Recast, Game AI Pro, the behavior-tree survey, Jolt, and Tracy are linked again in Chapter 14 because they are implementation aids for this exact checkpoint.
+
 ### Module AD-AI - Recast/Detour and server-owned encounter intelligence
 
 **AD-AI-01 - Navmesh concepts, Recast build, Detour queries, and debug views**<br>
@@ -2985,6 +3119,8 @@ Prereq: `AD-AI-06`. Teach: mixed health/damage/add/elite/mechanic scaling, heale
 - Required evidence: commit hash, architecture diagram, recorded run or screenshots, CI summary, test matrix, known limitations, and learner attestation. Completion is self-verified, not automatic repository inspection.
 
 ## Stage 5 - Dedicated networking, authority, and persistence
+
+> **Stage-to-project connection:** this stage ends at `checkpoint/15-networked-game`: the complete encounter must run through a dedicated server with version negotiation, bounded protocol messages, commands, prediction/reconciliation, snapshots, relevance, party/session flow, owner-only durable state, late join, reconnect, persistence, and hostile-input tests. The gate is repeated two-player then eight-player completion under named network faults with privacy and corruption checks. Use GameNetworkingSockets, the Gaffer networking articles, Snapshot Interpolation, and libFuzzer from Chapters 7 and 15 as hands-on references.
 
 ### Module AD-NW - Eight-player client/server architecture
 
@@ -3028,6 +3164,8 @@ Prereq: `AD-NW-06`, `AD-NW-11`. Teach: latency/loss/jitter/reorder profiles, bot
 
 ## Stage 6 - Party UX, production UI, readability, and accessibility
 
+> **Stage-to-project connection:** this stage ends at `checkpoint/08-player-experience`: RmlUi screens and HUD must expose the real replicated party/combat/inventory state, all flows must work with keyboard/mouse and controller, and eight-player telegraph/party priority must remain readable with scalable and reduced-effects modes. The gate is an accessibility/controller matrix plus 1/2/4/6/8-player captures and error/reconnect scenarios—not a static mockup. Use RmlUi, Steam Input, Xbox Accessibility Guidelines, and Game Accessibility Guidelines beside the UI tasks.
+
 ### Module AD-UX - Eight-player player-facing systems
 
 **AD-UX-01 - RmlUi production architecture and UI data facades**<br>
@@ -3051,6 +3189,8 @@ Prereq: `AD-UX-04`, `AD-UX-05`. Teach: text/subtitle/UI scale, contrast/color-sa
 `AD-GATE-04` exit - eight-player stress slice: exercise 2/4/6/8 participants or equivalent bots; complete an encounter under induced loss; preserve server tick headroom, bounded memory/bandwidth/AI/nav/projectile/VFX budgets, critical telegraphs, party/revive clarity, reconnect/late join, and reward/save integrity. Required evidence includes profile traces, packet graphs, readability captures with reduced effects, two-hour soak, faults found/fixed, and residual risk.
 
 ## Stage 7 - QA, observability, Steam, and Early Access
+
+> **Stage-to-project connection:** this stage produces the actual release artifact: deterministic and integration suites, sanitizer/fuzz/load/soak lanes, budgets, logs/crashes/metrics, Steam adapter, client/server depots, compatibility/migration policy, support and rollback runbooks, truthful store copy, and a staged Early Access candidate. The final gate requires an immutable artifact installed, joined, crashed/triaged, patched, rolled back, and mapped claim-by-claim to evidence. Use CTest, sanitizers, Tracy, RenderDoc, Crashpad, OpenTelemetry, and the current Steamworks documentation embedded in Chapters 9 and 16.
 
 ### Module AD-QA - Production quality engineering
 
