@@ -8,67 +8,7 @@ const outputPaths = [
   resolve(root, "docs/ActionDev-Master-Learning-Guide.html"),
   resolve(root, "docs/index.html"),
 ];
-const rawMarkdown = await readFile(sourcePath, "utf8");
-
-const resourceLinks = {
-  "R-CPPREF": ["cppreference", "https://en.cppreference.com/"],
-  "R-CORE": ["C++ Core Guidelines", "https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines"],
-  "R-CMAKE": ["CMake tutorial", "https://cmake.org/cmake/help/latest/guide/tutorial/"],
-  "R-CTEST": ["CTest manual", "https://cmake.org/cmake/help/latest/manual/ctest.1.html"],
-  "R-VCPKG": ["vcpkg CMake integration", "https://learn.microsoft.com/en-us/vcpkg/users/buildsystems/cmake-integration"],
-  "R-PROGIT": ["Pro Git", "https://git-scm.com/book/en/v2"],
-  "R-GHLFS": ["Git LFS", "https://git-lfs.com/"],
-  "R-ASAN": ["AddressSanitizer", "https://clang.llvm.org/docs/AddressSanitizer.html"],
-  "R-TSAN": ["ThreadSanitizer", "https://clang.llvm.org/docs/ThreadSanitizer.html"],
-  "R-LIBFUZZ": ["libFuzzer", "https://llvm.org/docs/LibFuzzer.html"],
-  "R-GTEST": ["GoogleTest", "https://google.github.io/googletest/"],
-  "R-GPP": ["Game Programming Patterns", "https://gameprogrammingpatterns.com/"],
-  "R-DOD": ["Data-Oriented Design", "https://www.dataorienteddesign.com/dodbook/"],
-  "R-SDL": ["SDL3 Wiki", "https://wiki.libsdl.org/SDL3/"],
-  "R-MINIAUDIO": ["miniaudio manual", "https://miniaud.io/docs/manual/"],
-  "R-BGFX": ["bgfx documentation", "https://bkaradzic.github.io/bgfx/"],
-  "R-RENDERDOC": ["RenderDoc", "https://renderdoc.org/"],
-  "R-TRACY": ["Tracy profiler", "https://github.com/wolfpld/tracy"],
-  "R-GLTF": ["glTF 2.0 specification", "https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html"],
-  "R-BLENDER": ["Blender glTF exporter", "https://docs.blender.org/manual/en/latest/addons/import_export/scene_gltf2.html"],
-  "R-ENTT": ["EnTT", "https://github.com/skypjack/entt"],
-  "R-JSON": ["JSON for Modern C++", "https://github.com/nlohmann/json"],
-  "R-JOLT": ["Jolt Physics", "https://jrouwe.github.io/JoltPhysics/"],
-  "R-OZZ": ["ozz-animation", "https://guillaumeblanc.github.io/ozz-animation/documentation/"],
-  "R-RECAST": ["Recast Navigation", "https://recastnav.com/"],
-  "R-IMGUI": ["Dear ImGui", "https://github.com/ocornut/imgui/wiki/Getting-Started"],
-  "R-RMLUI": ["RmlUi manual", "https://mikke89.github.io/RmlUiDoc/pages/cpp_manual.html"],
-  "R-GAFFER-TIME": ["Fix Your Timestep", "https://gafferongames.com/post/fix_your_timestep/"],
-  "R-GAFFER-NET": ["Networked Physics", "https://gafferongames.com/categories/networked-physics/"],
-  "R-GAFFER-SNAPSHOT": ["Snapshot Interpolation", "https://gafferongames.com/post/snapshot_interpolation/"],
-  "R-GNS": ["GameNetworkingSockets", "https://github.com/ValveSoftware/GameNetworkingSockets"],
-  "R-BT-SURVEY": ["behavior-tree survey", "https://arxiv.org/abs/2005.05842"],
-  "R-GAIPRO": ["Game AI Pro", "https://www.gameaipro.com/"],
-  "R-XAG": ["Xbox Accessibility Guidelines", "https://learn.microsoft.com/en-us/gaming/accessibility/guidelines"],
-  "R-GAG": ["Game Accessibility Guidelines", "https://gameaccessibilityguidelines.com/"],
-  "R-CRASHPAD": ["Crashpad", "https://chromium.googlesource.com/crashpad/crashpad/"],
-  "R-OTEL": ["OpenTelemetry C++", "https://opentelemetry.io/docs/languages/cpp/"],
-  "R-D2": ["Chapter 6 buildcraft design summary", "#6-abilities-progression-loot-navigation-and-encounters"],
-  "R-STEAMINPUT": ["Steam Input", "https://partner.steamgames.com/doc/features/steam_controller"],
-  "R-STEAMLOBBY": ["Steam lobbies", "https://partner.steamgames.com/doc/features/multiplayer/matchmaking"],
-  "R-STEAMAUTH": ["Steam authentication", "https://partner.steamgames.com/doc/features/auth"],
-  "R-STEAMAC": ["Steam anti-cheat guidance", "https://partner.steamgames.com/doc/features/anticheat"],
-  "R-SPACEWAR": ["Steamworks Spacewar example", "https://partner.steamgames.com/doc/sdk/api/example"],
-  "R-STEAMSERVER": ["Steam game servers", "https://partner.steamgames.com/doc/features/multiplayer/game_servers"],
-  "R-STEAMUPLOAD": ["SteamPipe uploading", "https://partner.steamgames.com/doc/sdk/uploading"],
-  "R-STEAMCLOUD": ["Steam Cloud", "https://partner.steamgames.com/doc/features/cloud"],
-  "R-STEAMSTATS": ["Steam stats and achievements", "https://partner.steamgames.com/doc/features/achievements"],
-  "R-STEAMEA": ["Steam Early Access rules", "https://partner.steamgames.com/doc/store/earlyaccess"],
-  "R-STEAMSTORE": ["Steam store presence", "https://partner.steamgames.com/doc/store"],
-};
-
-const markdown = rawMarkdown.split(/\r?\n/).map((line) => {
-  if (!line.includes("Optional:") || !/`R-/.test(line)) return line;
-  return line.replace("Optional:", "If stuck, use:").replace(/`(R-[A-Z0-9-]+)`/g, (full, key) => {
-    const resource = resourceLinks[key];
-    return resource ? `[${resource[0]}](${resource[1]})` : full;
-  });
-}).join("\n");
+const markdown = await readFile(sourcePath, "utf8");
 
 const escapeHtml = (value) => value
   .replaceAll("&", "&amp;")
